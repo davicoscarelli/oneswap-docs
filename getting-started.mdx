@@ -11,28 +11,7 @@ npm install @oneswap/sdk
 
 ## Get an API key
 
-1. Register a developer account:
-
-```bash
-curl -X POST https://api.oneswap.cc/api/sdk/register \
-  -H "Content-Type: application/json" \
-  -d '{"email": "you@example.com", "password": "..."}'
-```
-
-2. Log in to get a JWT:
-
-```bash
-curl -X POST https://api.oneswap.cc/api/sdk/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "you@example.com", "password": "..."}'
-```
-
-3. Create an API key:
-
-```bash
-curl -X POST https://api.oneswap.cc/api/sdk/keys \
-  -H "Authorization: Bearer <jwt>"
-```
+Sign up at [oneswap.cc](https://oneswap.cc) and create an API key from your dashboard.
 
 ## Initialize the client
 
@@ -41,8 +20,7 @@ import { OneSwap } from '@oneswap/sdk'
 
 const client = new OneSwap({
   apiKey: 'os_live_...',
-  baseUrl: 'https://api.oneswap.cc', // optional, this is the default
-  timeout: 30000                      // optional, milliseconds
+  timeout: 30000 // optional, milliseconds
 })
 ```
 

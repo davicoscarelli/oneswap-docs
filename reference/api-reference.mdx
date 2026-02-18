@@ -1,61 +1,41 @@
 ---
-title: API reference
-description: Complete SDK and REST API endpoint reference for OneSwap.
+title: SDK reference
+description: Complete SDK method reference and types for OneSwap.
 ---
 
 ## Authentication
 
-All SDK API requests require an API key header:
+Pass your API key when initializing the client:
 
-```
-X-API-Key: os_live_...
-```
+```typescript
+import { OneSwap } from '@oneswap/sdk'
 
-Base URL: `https://api.oneswap.cc/api/v1`
+const client = new OneSwap({ apiKey: 'os_live_...' })
+```
 
 ## Pools
 
-### List pools
-
-```
-GET /api/v1/pools
-```
+### `client.pools.list()`
 
 Returns all pools with token reserves, fee, and LP token supply.
 
-### Get pool
-
-```
-GET /api/v1/pools/{poolId}
-```
+### `client.pools.get(poolId)`
 
 Returns pool details including `swapAddress` and `lpAddress`.
 
-### Get pool stats
-
-```
-GET /api/v1/pools/{poolId}/stats
-```
+### `client.pools.getStats(poolId)`
 
 Returns `apr`, `apy`, `volume24h`, `fees24h`, `tvl`, `swapCount24h`.
 
 ## Tokens
 
-### List tokens
-
-```
-GET /api/v1/tokens
-```
+### `client.tokens.list()`
 
 Returns available tokens with `name` and `admin` fields.
 
 ## Quotes
 
-### Get quote
-
-```
-GET /api/v1/quote?from={token}&to={token}&amount={amount}
-```
+### `client.quotes.get({ from, to, amount })`
 
 Returns `inputAmount`, `outputAmount`, `rate`, `priceImpact`, `fee`, `poolId`, `expiresIn`.
 
@@ -63,59 +43,29 @@ Quotes expire in 30 seconds.
 
 ## Wallets
 
-### Create wallet
-
-```
-POST /api/v1/wallets
-```
-
-```json
-{ "userId": "string" }
-```
+### `client.wallets.create({ userId })`
 
 Creates a custodial Canton wallet for the given user ID.
 
-### List wallets
+### `client.wallets.list()`
 
-```
-GET /api/v1/wallets
-```
+Returns all wallets for the authenticated developer.
 
-### Get wallet
+### `client.wallets.get(userId)`
 
-```
-GET /api/v1/wallets/{userId}
-```
+Returns wallet details by user ID.
 
-### Get balances
-
-```
-GET /api/v1/wallets/{userId}/balances
-```
+### `client.wallets.getBalances(userId)`
 
 Returns token balances for the custodial wallet.
 
 ## Swaps
 
-### Create swap intent
+### `client.swaps.create(params)`
 
-```
-POST /api/v1/swaps
-```
+Creates a swap intent. Returns a `SwapIntent` object (extends EventEmitter).
 
-```json
-{
-  "fromToken": "Amulet",
-  "toToken": "USDCx",
-  "amount": "100",
-  "slippageTolerance": 0.01,
-  "userId": "user-123",
-  "senderParty": "party-id::namespace",
-  "outputAddress": "receiver-party::namespace"
-}
-```
-
-| Field | Required | Description |
+| Param | Required | Description |
 | --- | --- | --- |
 | `fromToken` | Yes | Input token symbol |
 | `toToken` | Yes | Output token symbol |
@@ -127,39 +77,35 @@ POST /api/v1/swaps
 
 Returns intent with `depositAddress`, `expectedOutput`, `minOutput`, `expiresAt`, and `instructions`.
 
-### Get swap status
+```typescript
+const intent = await client.swaps.create({
+  fromToken: 'Amulet',
+  toToken: 'USDCx',
+  amount: '100',
+  slippageTolerance: 0.01
+})
 
+intent.on('matched', () => console.log('Deposit detected'))
+intent.on('completed', (s) => console.log(`Got ${s.actualOutput}`))
+
+const result = await intent.wait()
 ```
-GET /api/v1/swaps/{intentId}
-```
+
+### `client.swaps.getStatus(intentId)`
 
 **Status values:** `pending` → `matched` → `completed` | `slippage_failed` | `expired`
 
-### List swaps
+### `client.swaps.list(params?)`
 
-```
-GET /api/v1/swaps?status={status}&limit={n}&offset={n}
-```
+Optional params: `status`, `limit`, `offset`.
 
 ## Liquidity
 
-### Create LP intent
+### `client.liquidity.create(params)`
 
-```
-POST /api/v1/liquidity
-```
+Creates an LP intent. Returns an `LpIntent` object (extends EventEmitter).
 
-```json
-{
-  "poolId": "Amulet-USDCx",
-  "amountA": "100",
-  "amountB": "150",
-  "userId": "user-123",
-  "senderParty": "party-id::namespace"
-}
-```
-
-| Field | Required | Description |
+| Param | Required | Description |
 | --- | --- | --- |
 | `poolId` | Yes | Target pool |
 | `amountA` | Yes | Token A amount |
@@ -169,53 +115,42 @@ POST /api/v1/liquidity
 
 Returns intent with `depositAddress`, `lpAddress`, `expiresAt`, and `instructions`.
 
-### Get LP status
+```typescript
+const intent = await client.liquidity.create({
+  poolId: 'Amulet-USDCx',
+  amountA: '100',
+  amountB: '150'
+})
 
+intent.on('partial', () => console.log('One token received'))
+const result = await intent.wait()
 ```
-GET /api/v1/liquidity/{intentId}
-```
+
+### `client.liquidity.getStatus(intentId)`
 
 **Status values:** `pending` → `partial` → `completed` | `expired`
 
-### List LP intents
+### `client.liquidity.list(params?)`
 
-```
-GET /api/v1/liquidity?status={status}&limit={n}&offset={n}
-```
+Optional params: `status`, `limit`, `offset`.
 
 ## Positions and earnings
 
-### Get positions
-
-```
-GET /api/v1/positions/{userId}
-```
+### `client.positions.list(userId)`
 
 Returns LP positions with `sharePercent`, `valueTokenA`, `valueTokenB`.
 
-### Get earnings
-
-```
-GET /api/v1/positions/{userId}/earnings/{poolId}
-```
+### `client.positions.getEarnings(userId, poolId)`
 
 Returns `apr`, `apy`, estimated daily/monthly/yearly earnings.
 
 ## History and tracking
 
-### List history
+### `client.history.list(params?)`
 
-```
-GET /api/v1/history?limit={n}&offset={n}
-```
+Returns all swaps and LP intents for the authenticated developer. Optional params: `limit`, `offset`.
 
-Returns all swaps and LP intents for the authenticated developer.
-
-### Track by party
-
-```
-GET /api/v1/track/{partyId}
-```
+### `client.track(partyId)`
 
 Returns all swaps and LP intents associated with a Canton party ID.
 

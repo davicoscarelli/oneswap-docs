@@ -16,12 +16,11 @@ import { OneSwap } from '@oneswap/sdk'
 
 const client = new OneSwap({
   apiKey: 'os_live_...',
-  baseUrl: 'https://api.oneswap.cc', // optional
-  timeout: 30000                      // optional, milliseconds
+  timeout: 30000 // optional, milliseconds
 })
 ```
 
-Get your API key from the [developer portal](#developer-portal).
+Get your API key from [oneswap.cc](https://oneswap.cc).
 
 ## Get a quote
 
@@ -76,19 +75,6 @@ const intent = await client.swaps.create({
   userId: 'user-123' // uses custodial wallet address
 })
 ```
-
-## Developer portal
-
-Register at the SDK developer portal to get API keys:
-
-```
-POST /api/sdk/register    # create account
-POST /api/sdk/login       # get JWT
-POST /api/sdk/keys        # create API key
-GET  /api/sdk/keys        # list keys
-```
-
-Analytics endpoints are available at `/api/sdk/analytics/*` for tracking usage, swap volume, and per-key metrics.
 
 ## Next steps
 
