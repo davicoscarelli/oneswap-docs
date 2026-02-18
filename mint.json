@@ -1,5 +1,5 @@
 {
-  "name": "OneSwap Documentation",
+  "name": "OneSwap SDK",
   "favicon": "favicon.svg",
   "logo": {
     "light": "/logo-black.svg",
@@ -15,38 +15,23 @@
   ],
   "navigation": [
     {
-      "group": "Overview",
+      "group": "Getting Started",
       "pages": [
         "overview",
         "getting-started"
       ]
     },
     {
-      "group": "OneSwap",
+      "group": "SDK",
       "pages": [
-        "oneswap/architecture",
-        "oneswap/swaps-and-liquidity",
-        "oneswap/deposit-flow",
-        "oneswap/usdcx-transfer-api",
-        "oneswap/usdcx-transfer-acceptance"
-      ]
-    },
-    {
-      "group": "Operations",
-      "pages": [
-        "operations/deployment",
-        "operations/devnet-deploy",
-        "operations/backup-and-recovery",
-        "operations/validator-monitoring",
-        "operations/dar-deployment"
+        "oneswap/sdk-quickstart",
+        "oneswap/swaps-and-liquidity"
       ]
     },
     {
       "group": "Reference",
       "pages": [
-        "reference/devnet-tokens",
-        "reference/network-and-party-ids",
-        "reference/master-reference"
+        "reference/api-reference"
       ]
     }
   ]

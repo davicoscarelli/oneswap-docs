@@ -1,0 +1,341 @@
+---
+title: API reference
+description: Complete SDK and REST API endpoint reference for OneSwap.
+---
+
+## Authentication
+
+All SDK API requests require an API key header:
+
+```
+X-API-Key: os_live_...
+```
+
+Base URL: `https://api.oneswap.cc/api/v1`
+
+## Pools
+
+### List pools
+
+```
+GET /api/v1/pools
+```
+
+Returns all pools with token reserves, fee, and LP token supply.
+
+### Get pool
+
+```
+GET /api/v1/pools/{poolId}
+```
+
+Returns pool details including `swapAddress` and `lpAddress`.
+
+### Get pool stats
+
+```
+GET /api/v1/pools/{poolId}/stats
+```
+
+Returns `apr`, `apy`, `volume24h`, `fees24h`, `tvl`, `swapCount24h`.
+
+## Tokens
+
+### List tokens
+
+```
+GET /api/v1/tokens
+```
+
+Returns available tokens with `name` and `admin` fields.
+
+## Quotes
+
+### Get quote
+
+```
+GET /api/v1/quote?from={token}&to={token}&amount={amount}
+```
+
+Returns `inputAmount`, `outputAmount`, `rate`, `priceImpact`, `fee`, `poolId`, `expiresIn`.
+
+Quotes expire in 30 seconds.
+
+## Wallets
+
+### Create wallet
+
+```
+POST /api/v1/wallets
+```
+
+```json
+{ "userId": "string" }
+```
+
+Creates a custodial Canton wallet for the given user ID.
+
+### List wallets
+
+```
+GET /api/v1/wallets
+```
+
+### Get wallet
+
+```
+GET /api/v1/wallets/{userId}
+```
+
+### Get balances
+
+```
+GET /api/v1/wallets/{userId}/balances
+```
+
+Returns token balances for the custodial wallet.
+
+## Swaps
+
+### Create swap intent
+
+```
+POST /api/v1/swaps
+```
+
+```json
+{
+  "fromToken": "Amulet",
+  "toToken": "USDCx",
+  "amount": "100",
+  "slippageTolerance": 0.01,
+  "userId": "user-123",
+  "senderParty": "party-id::namespace",
+  "outputAddress": "receiver-party::namespace"
+}
+```
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `fromToken` | Yes | Input token symbol |
+| `toToken` | Yes | Output token symbol |
+| `amount` | Yes | Input amount |
+| `slippageTolerance` | No | `0.001`–`0.5`, default `0.01` (1%) |
+| `userId` | No | Use custodial wallet |
+| `senderParty` | No | Custom sender party address |
+| `outputAddress` | No | Receive output at different address |
+
+Returns intent with `depositAddress`, `expectedOutput`, `minOutput`, `expiresAt`, and `instructions`.
+
+### Get swap status
+
+```
+GET /api/v1/swaps/{intentId}
+```
+
+**Status values:** `pending` → `matched` → `completed` | `slippage_failed` | `expired`
+
+### List swaps
+
+```
+GET /api/v1/swaps?status={status}&limit={n}&offset={n}
+```
+
+## Liquidity
+
+### Create LP intent
+
+```
+POST /api/v1/liquidity
+```
+
+```json
+{
+  "poolId": "Amulet-USDCx",
+  "amountA": "100",
+  "amountB": "150",
+  "userId": "user-123",
+  "senderParty": "party-id::namespace"
+}
+```
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `poolId` | Yes | Target pool |
+| `amountA` | Yes | Token A amount |
+| `amountB` | Yes | Token B amount |
+| `userId` | No | Use custodial wallet |
+| `senderParty` | No | Custom sender party |
+
+Returns intent with `depositAddress`, `lpAddress`, `expiresAt`, and `instructions`.
+
+### Get LP status
+
+```
+GET /api/v1/liquidity/{intentId}
+```
+
+**Status values:** `pending` → `partial` → `completed` | `expired`
+
+### List LP intents
+
+```
+GET /api/v1/liquidity?status={status}&limit={n}&offset={n}
+```
+
+## Positions and earnings
+
+### Get positions
+
+```
+GET /api/v1/positions/{userId}
+```
+
+Returns LP positions with `sharePercent`, `valueTokenA`, `valueTokenB`.
+
+### Get earnings
+
+```
+GET /api/v1/positions/{userId}/earnings/{poolId}
+```
+
+Returns `apr`, `apy`, estimated daily/monthly/yearly earnings.
+
+## History and tracking
+
+### List history
+
+```
+GET /api/v1/history?limit={n}&offset={n}
+```
+
+Returns all swaps and LP intents for the authenticated developer.
+
+### Track by party
+
+```
+GET /api/v1/track/{partyId}
+```
+
+Returns all swaps and LP intents associated with a Canton party ID.
+
+## Types
+
+### Quote
+
+```typescript
+interface Quote {
+  inputToken: string
+  outputToken: string
+  inputAmount: string
+  outputAmount: string
+  rate: string
+  priceImpact: string
+  fee: number
+  poolId: string
+  expiresIn: number
+}
+```
+
+### SwapIntent
+
+```typescript
+interface SwapIntentResponse {
+  intentId: string
+  poolId: string
+  depositAddress: string
+  inputToken: string
+  outputToken: string
+  expectedAmount: string
+  expectedOutput: string | null
+  minOutput: string | null
+  slippageTolerance: number
+  expiresAt: string
+  instructions: Record<string, string>
+}
+```
+
+### SwapStatus
+
+```typescript
+interface SwapStatusResponse {
+  intentId: string
+  status: 'pending' | 'matched' | 'completed' | 'slippage_failed' | 'expired'
+  inputToken: string
+  outputToken: string
+  expectedAmount: string
+  actualOutput: string | null
+  matchedAt: string | null
+  createdAt: string
+  expiresAt: string
+}
+```
+
+### LpIntent
+
+```typescript
+interface LpIntentResponse {
+  intentId: string
+  poolId: string
+  depositAddress: string
+  lpAddress: string
+  tokenA: string
+  tokenB: string
+  expectedAmountA: string
+  expectedAmountB: string
+  expiresAt: string
+  instructions: Record<string, string>
+}
+```
+
+### Wallet
+
+```typescript
+interface Wallet {
+  walletId: string
+  userId: string
+  address: string
+  createdAt: string
+}
+```
+
+### Pool
+
+```typescript
+interface Pool {
+  id: string
+  tokenA: { name: string; reserve: string }
+  tokenB: { name: string; reserve: string }
+  fee: number
+  lpTokens: string
+}
+
+interface PoolDetail extends Pool {
+  swapAddress: string
+  lpAddress: string
+}
+
+interface PoolStats {
+  apr: number
+  apy: number
+  volume24h: string
+  fees24h: string
+  tvl: string
+  swapCount24h: number
+}
+```
+
+### Error classes
+
+```typescript
+import {
+  OneSwapError,
+  AuthError,        // 401
+  ValidationError,  // 400
+  NotFoundError,    // 404
+  RateLimitError,   // 429
+  SlippageError,    // swap failed slippage check
+  ExpiredError,     // intent expired
+  ServerError       // 500
+} from '@oneswap/sdk'
+```

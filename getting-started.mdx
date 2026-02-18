@@ -1,51 +1,59 @@
 ---
 title: Getting started
-description: Run OneSwap locally and connect to a Canton validator.
+description: Install and configure the OneSwap SDK.
 ---
 
-## Prerequisites
-
-- Docker and Docker Compose
-- Node.js `18+`
-- Access to a Canton participant JSON API
-- Optional: Daml SDK for rebuilding DARs
-
-## Local development quick start
+## Install
 
 ```bash
-# from the AMM app root
-./scripts/start-dev.sh
+npm install @oneswap/sdk
 ```
 
-This helper script builds DARs, uploads contracts to a local participant, and starts:
+## Get an API key
 
-- Backend on `http://localhost:3001`
-- Frontend on `http://localhost:5173`
-
-## Manual startup
+1. Register a developer account:
 
 ```bash
-# build contracts
-./scripts/build-dars.sh
-
-# backend
-cd backend
-npm install
-export CANTON_API_URL=http://localhost:6501
-export CANTON_API_TOKEN=<YOUR_TOKEN>
-npm start
-
-# frontend
-cd ../frontend
-npm install
-npm run dev
+curl -X POST https://api.oneswap.cc/api/sdk/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com", "password": "..."}'
 ```
 
-## DevNet backend quick check
+2. Log in to get a JWT:
 
 ```bash
-curl http://localhost:3001/health
-curl http://localhost:3001/api/tap/balance/<party-id>
+curl -X POST https://api.oneswap.cc/api/sdk/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com", "password": "..."}'
 ```
 
-If you need a full infrastructure deployment, use `operations/deployment` and `operations/devnet-deploy`.
+3. Create an API key:
+
+```bash
+curl -X POST https://api.oneswap.cc/api/sdk/keys \
+  -H "Authorization: Bearer <jwt>"
+```
+
+## Initialize the client
+
+```typescript
+import { OneSwap } from '@oneswap/sdk'
+
+const client = new OneSwap({
+  apiKey: 'os_live_...',
+  baseUrl: 'https://api.oneswap.cc', // optional, this is the default
+  timeout: 30000                      // optional, milliseconds
+})
+```
+
+## Verify it works
+
+```typescript
+const pools = await client.pools.list()
+console.log(`Found ${pools.length} pools`)
+```
+
+## Next steps
+
+- [SDK quickstart](/oneswap/sdk-quickstart) — quotes, swaps, wallets, and liquidity
+- [API reference](/reference/api-reference) — all endpoints and types
