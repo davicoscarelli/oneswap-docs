@@ -60,9 +60,48 @@ for (const pos of positions.positions) {
 const earnings = await client.positions.getEarnings('alice::12205a8c...', 'Amulet-USDCx')
 
 console.log(`APR: ${earnings.apr}%`)
-console.log(`Daily earnings: ${earnings.estimatedDailyEarnings}`)
+console.log(`Projected daily earnings: ${earnings.estimatedDailyEarnings}`)
 console.log(`LP share: ${earnings.lpSharePercent}%`)
+
+// What you'd actually receive if you withdrew now
+const { tokenA, tokenB } = earnings.withdrawable
+console.log(`Withdrawable: ${tokenA.amount} ${tokenA.name}, ${tokenB.amount} ${tokenB.name}`)
 ```
+
+<Note>
+Earnings estimates are **projections** based on the pool's trailing 24-hour fee volume and your current LP share. They are not accrued balances. Use `withdrawable` to see the actual token amounts you would receive if you removed your liquidity now.
+</Note>
+
+## Withdraw liquidity
+
+```typescript
+// Withdraw full position
+const result = await client.liquidity.withdraw({
+  poolId: 'Amulet-USDCx',
+  ownerParty: 'alice::12205a8c...',
+})
+
+console.log(`Withdrew ${result.lpTokensWithdrawn} LP tokens`)
+console.log(`Received: ${result.returnedA} ${result.tokenA}, ${result.returnedB} ${result.tokenB}`)
+```
+
+Partial withdrawal — specify an `amount` of LP tokens:
+
+```typescript
+const result = await client.liquidity.withdraw({
+  poolId: 'Amulet-USDCx',
+  ownerParty: 'alice::12205a8c...',
+  amount: '50',                          // withdraw 50 LP tokens (not all)
+  destinationParty: 'bob::98def1...',    // optional: send to a different party
+})
+```
+
+| Param | Required | Description |
+|---|---|---|
+| `poolId` | yes | Pool to withdraw from |
+| `ownerParty` | yes | Canton party that owns the LP tokens |
+| `amount` | no | LP tokens to withdraw (defaults to full balance) |
+| `destinationParty` | no | Party to receive withdrawn tokens (defaults to `ownerParty`) |
 
 ## Browse pools
 

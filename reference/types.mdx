@@ -162,6 +162,25 @@ interface LpStatusResponse {
   createdAt: string
   expiresAt: string
 }
+
+interface WithdrawParams {
+  poolId: string
+  ownerParty: string
+  amount?: string            // LP tokens to withdraw (defaults to full balance)
+  destinationParty?: string  // defaults to ownerParty
+}
+
+interface WithdrawResponse {
+  success: boolean
+  lpTokensWithdrawn: string
+  returnedA: string
+  returnedB: string
+  tokenA: string
+  tokenB: string
+  newReserveA: string
+  newReserveB: string
+  newTotalLp: string
+}
 ```
 
 ## Positions
@@ -190,13 +209,17 @@ interface LpEarnings {
   partyId: string
   lpBalance: string
   lpSharePercent: string
-  estimatedDailyEarnings: string
-  estimatedMonthlyEarnings: string
-  estimatedYearlyEarnings: string
+  estimatedDailyEarnings: string   // projected, not accrued
+  estimatedMonthlyEarnings: string // projected, not accrued
+  estimatedYearlyEarnings: string  // projected, not accrued
   apr: string
   apy: string
   totalPoolLpTokens: string
   tvl: string
+  withdrawable: {
+    tokenA: { name: string; amount: string }
+    tokenB: { name: string; amount: string }
+  }
 }
 ```
 

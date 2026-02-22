@@ -85,6 +85,7 @@ Extends `EventEmitter`. Properties: `intentId`, `depositAddress`, `expectedOutpu
 | `client.liquidity.create(params)` | Create LP intent |
 | `client.liquidity.getStatus(intentId)` | Poll LP status |
 | `client.liquidity.list(params?)` | List LP intents (filter by `status`, `limit`, `offset`) |
+| `client.liquidity.withdraw(params)` | Withdraw liquidity (full or partial) |
 
 ### `liquidity.create` params
 
@@ -106,6 +107,17 @@ Extends `EventEmitter`. Properties: `intentId`, `depositAddress`, `lpAddress`, `
 | `'partial'` | One token received |
 | `'completed'` | LP minted |
 | `'expired'` | Timed out |
+
+### `liquidity.withdraw` params
+
+| Param | Required | Description |
+|---|---|---|
+| `poolId` | yes | Pool to withdraw from |
+| `ownerParty` | yes | Canton party that owns the LP tokens |
+| `amount` | no | LP tokens to withdraw (defaults to full balance) |
+| `destinationParty` | no | Party to receive tokens (defaults to `ownerParty`) |
+
+Returns `WithdrawResponse` with `lpTokensWithdrawn`, `returnedA`, `returnedB`, `tokenA`, `tokenB`.
 
 ## Positions
 
