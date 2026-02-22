@@ -167,7 +167,7 @@ interface WithdrawParams {
   poolId: string
   ownerParty: string
   amount?: string            // LP tokens to withdraw (defaults to full balance)
-  destinationParty?: string  // defaults to ownerParty
+  destinationParty: string   // Canton party to receive withdrawn tokens
 }
 
 interface WithdrawResponse {
