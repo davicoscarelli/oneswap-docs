@@ -35,7 +35,7 @@ const client = new OneSwap({ apiKey: 'os_live_...' })
 
 | Method | Description |
 |---|---|
-| `client.quotes.get({ from, to, amount })` | Price quote (valid 30s) |
+| `client.quotes.get({ from, to, amount })` | Price quote (valid 30s). Includes `estimatedTrafficCost` and `inputAmountAfterTrafficFee`. Returns 400 if amount is below traffic cost minimum. |
 
 ## Wallets
 
@@ -75,7 +75,9 @@ Extends `EventEmitter`. Properties: `intentId`, `depositAddress`, `expectedOutpu
 | `swap.wait(opts?)` | Await terminal state |
 | `'matched'` | Deposit detected |
 | `'completed'` | Swap done |
-| `'slippage_failed'` | Refunded |
+| `'slippage_failed'` | Refunded — price moved beyond tolerance |
+| `'insufficient_amount'` | Refunded — input below network traffic cost |
+| `'insufficient_liquidity'` | Refunded — not enough liquidity |
 | `'expired'` | Timed out |
 
 ## Liquidity

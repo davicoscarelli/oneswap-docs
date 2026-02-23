@@ -6,6 +6,14 @@ description: TypeScript interfaces exported by the SDK.
 ## Quote
 
 ```typescript
+interface TrafficCostEstimate {
+  bytes: number
+  usd: string
+  cc: string
+  extraTrafficPricePerMb: string
+  amuletPrice: string
+}
+
 interface Quote {
   inputToken: string
   outputToken: string
@@ -16,6 +24,8 @@ interface Quote {
   fee: number
   poolId: string
   expiresIn: number      // seconds
+  estimatedTrafficCost?: TrafficCostEstimate
+  inputAmountAfterTrafficFee?: string
 }
 ```
 
@@ -98,7 +108,7 @@ interface SwapIntentResponse {
 interface SwapStatusResponse {
   intentId: string
   poolId: string
-  status: 'pending' | 'matched' | 'completed' | 'slippage_failed' | 'expired'
+  status: 'pending' | 'matched' | 'deposit_received' | 'forwarded' | 'processing' | 'sending_output' | 'completed' | 'slippage_failed' | 'insufficient_liquidity' | 'insufficient_amount' | 'output_failed' | 'expired' | 'cancelled'
   inputToken: string
   outputToken: string
   expectedAmount: string

@@ -37,9 +37,11 @@ const quote = await client.quotes.get({
   amount: '100'
 })
 
-console.log(quote.outputAmount) // "48.392810"
-console.log(quote.rate)         // "0.483928"
-console.log(quote.priceImpact)  // "0.12"
+console.log(quote.outputAmount)              // "48.392810"
+console.log(quote.rate)                      // "0.483928"
+console.log(quote.priceImpact)               // "0.12"
+console.log(quote.estimatedTrafficCost?.cc)  // "0.012345" (network fee in CC)
+console.log(quote.inputAmountAfterTrafficFee) // "99.987655" (net input)
 ```
 
 ## 6. Execute a swap

@@ -67,7 +67,8 @@ const result = await swap.wait()
 ```typescript
 swap.on('matched', (s) => console.log('Deposit detected'))
 swap.on('completed', (s) => console.log(`Got ${s.actualOutput}`))
-swap.on('slippage_failed', (s) => console.log('Refunded'))
+swap.on('slippage_failed', (s) => console.log('Refunded — price moved'))
+swap.on('insufficient_amount', (s) => console.log('Refunded — below traffic cost'))
 swap.on('expired', (s) => console.log('Expired'))
 ```
 
@@ -81,7 +82,9 @@ const status = await client.swaps.getStatus(swap.intentId)
 
 ```
 pending → matched → completed
-                  → slippage_failed (refunded)
+                  → slippage_failed (refunded — price moved)
+                  → insufficient_amount (refunded — below traffic cost)
+                  → insufficient_liquidity (refunded)
          → expired (no deposit in 30 min)
 ```
 
@@ -103,9 +106,15 @@ const quote = await client.quotes.get({
   amount: '100'
 })
 
-// quote.outputAmount  — how much they'll receive
-// quote.rate          — exchange rate
-// quote.priceImpact   — how much the trade moves the price
-// quote.fee           — pool fee rate
-// quote.expiresIn     — quote valid for 30 seconds
+// quote.outputAmount             — how much they'll receive
+// quote.rate                     — exchange rate
+// quote.priceImpact              — how much the trade moves the price
+// quote.fee                      — pool fee rate
+// quote.expiresIn                — quote valid for 30 seconds
+// quote.estimatedTrafficCost     — Canton network cost breakdown (optional)
+// quote.inputAmountAfterTrafficFee — net input after traffic fee deduction (optional)
 ```
+
+<Note>
+A **traffic fee** (Canton network cost) is deducted from the input amount before the swap calculation. The quote shows this via `estimatedTrafficCost` and `inputAmountAfterTrafficFee`. If the input amount is too small to cover the traffic cost, the quote endpoint returns a 400 error with a `minimumAmount` field.
+</Note>

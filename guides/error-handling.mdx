@@ -61,6 +61,7 @@ err.response   // raw response body from the API
 | `NotFoundError` | Pool or intent doesn't exist | Check the ID |
 | `RateLimitError` | Too many requests | Back off and retry |
 | `SlippageError` | Price moved during swap | Retry with higher tolerance or try again |
+| `ValidationError` (400) | Input amount below traffic cost minimum | Increase the swap amount. The error response includes `minimumAmount`. |
 | `ExpiredError` | 30 min passed without deposit | Create a new intent |
 | `ServerError` | Our problem | Retry after a moment |
 
