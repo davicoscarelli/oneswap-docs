@@ -5,39 +5,64 @@ description: "How OneSwap's fee model works — earn trading fees as a liquidity
 
 # Fee Sharing & Earning
 
-Every swap on OneSwap generates fees. Those fees go directly to liquidity providers. Here's exactly how it works.
+Every swap on OneSwap generates a **2% fee**. That fee is split between liquidity providers, the platform, and — for SDK-powered swaps — the developer who built the integration.
 
 ## Fee Structure
 
-### Swap Fee — 0.3%
+### Total Swap Fee — 2%
 
-Every token swap charges a **0.3% fee** on the input amount. This fee is distributed entirely to liquidity providers of that pool.
+Every token swap charges a **2% fee** on the input amount. Here's how it's distributed:
+
+| Recipient | Share | Percentage |
+|-----------|-------|------------|
+| **Liquidity Providers** | 80% of fee | **1.6%** |
+| **Platform** | 20% of fee | **0.4%** |
+
+### SDK Developer Fee Split
+
+When a swap is executed through the **OneSwap SDK** (by a third-party app), the platform's 0.4% share is split equally with the developer:
+
+| Recipient | Share | Percentage |
+|-----------|-------|------------|
+| **Liquidity Providers** | 80% of fee | **1.6%** |
+| **Platform** | 10% of fee | **0.2%** |
+| **SDK Developer** | 10% of fee | **0.2%** |
+
+This means developers earn revenue simply by integrating OneSwap into their apps.
+
+### Fee Flow — Direct Swap (oneswap.xyz)
 
 ```
-User swaps 1,000 CC → 3 CC goes to LPs → 997 CC enters the swap calculation
+User swaps 1,000 CC
+  ├── Traffic fee → Canton Network (variable, small)
+  ├── 16 CC (1.6%) → Liquidity Providers
+  ├── 4 CC (0.4%) → OneSwap Platform
+  └── Remainder → Swap calculation → Output tokens to user
+```
+
+### Fee Flow — SDK Swap (third-party app)
+
+```
+User swaps 1,000 CC
+  ├── Traffic fee → Canton Network (variable, small)
+  ├── 16 CC (1.6%) → Liquidity Providers
+  ├── 2 CC (0.2%) → OneSwap Platform
+  ├── 2 CC (0.2%) → SDK Developer
+  └── Remainder → Swap calculation → Output tokens to user
 ```
 
 ### Traffic Fee — Variable
 
-The Canton Network charges a small traffic fee per transaction. This is separate from the swap fee and goes to the network, not to LPs. The exact amount varies by transaction size and is shown in the swap quote.
-
-### Fee Flow
-
-```
-User sends 1,000 CC
-  ├── Traffic fee → Canton Network (variable, small)
-  ├── Swap fee (0.3%) → Liquidity Providers
-  └── Remainder → Swap calculation → Output tokens to user
-```
+The Canton Network charges a small traffic fee per transaction. This is separate from the swap fee and goes to the network. The exact amount varies by transaction size and is shown in the swap quote.
 
 ## How LPs Earn
 
-When you provide liquidity, you earn fees proportional to your share of the pool.
+When you provide liquidity, you earn **1.6% of every swap** proportional to your share of the pool.
 
 ### The Math
 
 ```
-Your earnings per swap = Swap fee × (Your LP tokens / Total LP tokens)
+Your earnings per swap = LP fee (1.6%) × Swap amount × (Your LP tokens / Total LP tokens)
 ```
 
 **Example:**
@@ -48,15 +73,15 @@ Your earnings per swap = Swap fee × (Your LP tokens / Total LP tokens)
 | Total LP tokens in pool | 10,000 |
 | Your pool share | 1% |
 | Swap volume today | 500,000 CC |
-| Swap fees generated | 1,500 CC (0.3%) |
-| **Your earnings today** | **15 CC** |
+| LP fees generated | 8,000 CC (1.6%) |
+| **Your earnings today** | **80 CC** |
 
 ### How Fees Accumulate
 
 Fees don't appear as a separate balance. Instead, they increase the value of your LP tokens:
 
 1. A user swaps 1,000 CC for USDCx
-2. 3 CC (0.3%) is added to the pool reserves
+2. 16 CC (1.6%) is added to the pool reserves
 3. Your LP tokens now represent a slightly larger share of reserves
 4. When you withdraw, you receive more tokens than you deposited
 
@@ -67,7 +92,7 @@ This means your earnings are **automatic and continuous** — no claiming or har
 The **Annual Percentage Rate (APR)** shown on each pool is calculated from recent trading activity:
 
 ```
-APR = (Fees earned over 7 days / Total pool value) × (365 / 7) × 100
+APR = (LP fees earned over 7 days / Total pool value) × (365 / 7) × 100
 ```
 
 | APR | What It Means |
@@ -91,39 +116,58 @@ Let's say you provide liquidity to the CC/USDCx pool:
 
 **Over 30 Days: Trading Happens**
 - 2,000,000 CC in total swap volume passes through the pool
-- Swap fees generated: 6,000 CC worth of value
-- Your 1% share: **~60 CC worth of fees earned**
+- LP fees generated: 32,000 CC worth of value (1.6%)
+- Your 1% share: **~320 CC worth of fees earned**
 
 **Day 30: You Withdraw**
 - You redeem your LP tokens
-- You receive: **1,030 CC + 1,648 USDCx** (approximate, depends on price movements)
-- Your profit: **30 CC + 48 USDCx** in fee earnings
+- You receive your original deposit plus accrued fees
+- Your profit: fee earnings proportional to your 1% share
+
+## For SDK Developers
+
+If you integrate OneSwap into your application using the SDK, you automatically earn **0.2% of every swap** made through your integration.
+
+### How It Works
+
+1. Sign up for an SDK API key
+2. Integrate swap functionality into your app
+3. Every swap your users make generates 0.2% revenue for you
+
+### Revenue Example
+
+| Monthly Swap Volume | Your Revenue (0.2%) |
+|---|---|
+| 100,000 CC | 200 CC |
+| 1,000,000 CC | 2,000 CC |
+| 10,000,000 CC | 20,000 CC |
+
+No upfront cost. No minimum volume. You earn from the first swap.
 
 ## Maximizing Returns
 
-### Choose High-Volume Pools
+### For Liquidity Providers
 
-More swaps = more fees. Look at the 24-hour volume and APR when selecting a pool.
+- **Choose high-volume pools** — More swaps = more fees. Check 24-hour volume and APR.
+- **Provide more liquidity** — Your earnings scale linearly with your pool share.
+- **Stay in the pool longer** — Fees accumulate continuously.
+- **Monitor impermanent loss** — If the price ratio changes dramatically, fee earnings may not fully offset the loss.
 
-### Provide More Liquidity
+### For SDK Developers
 
-Your earnings scale linearly with your pool share. Doubling your deposit doubles your fee income.
+- **Drive swap volume** — The more users swap through your app, the more you earn.
+- **Integrate multiple pools** — Give users more options to increase total volume.
+- **Build great UX** — A smooth swap experience drives repeat usage.
 
-### Stay in the Pool Longer
+## Fee Summary
 
-Fees accumulate continuously. The longer you provide liquidity, the more you earn (assuming consistent volume).
-
-### Monitor Impermanent Loss
-
-If the price ratio between the two tokens changes dramatically, your position may be worth less than if you had held the tokens separately. Fee earnings help offset this, but it's important to monitor.
-
-## Comparing Strategies
-
-| Strategy | Risk | Potential Return | Effort |
-|----------|------|-----------------|--------|
-| Hold tokens | Low | Market appreciation only | None |
-| Provide liquidity | Medium | Market appreciation + swap fees | Deposit once, monitor occasionally |
-| Active LP management | Medium-High | Optimized fee capture | Regular monitoring and rebalancing |
+| Fee | Rate | Recipient | Source |
+|-----|------|-----------|--------|
+| LP Fee | 1.6% | Liquidity Providers | All swaps |
+| Platform Fee | 0.4% | OneSwap | Direct swaps |
+| Platform Fee (SDK) | 0.2% | OneSwap | SDK swaps |
+| Developer Fee | 0.2% | SDK Developer | SDK swaps |
+| Traffic Fee | Variable | Canton Network | All swaps |
 
 ## Featured App Rewards
 
@@ -134,5 +178,5 @@ OneSwap participates in the Canton Network's **Featured App Rewards** program. T
 - These rewards supplement the platform's sustainability
 
 <Info>
-Featured App Rewards are a platform-level benefit and don't directly affect individual LP earnings. The 0.3% swap fee to LPs remains the primary earning mechanism.
+Featured App Rewards are a platform-level benefit and don't directly affect individual LP earnings. The 1.6% LP fee remains the primary earning mechanism for liquidity providers.
 </Info>

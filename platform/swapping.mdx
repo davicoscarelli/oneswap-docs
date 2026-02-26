@@ -42,11 +42,12 @@ Larger swaps relative to pool size result in more **price impact** — the diffe
 
 ## Fees
 
-Every swap incurs a **0.3% fee** that goes directly to liquidity providers. This fee is taken from the input amount before the swap calculation.
+Every swap incurs a **2% fee** taken from the input amount. This fee is split between liquidity providers (1.6%), the platform (0.4%), and — for SDK swaps — the integrating developer (0.2% from the platform's share).
 
 | Fee | Amount | Goes To |
 |-----|--------|---------|
-| Swap fee | 0.3% | Liquidity providers |
+| LP fee | 1.6% | Liquidity providers |
+| Platform fee | 0.4% | OneSwap (0.2% platform + 0.2% developer for SDK swaps) |
 | Traffic fee | Variable | Canton Network |
 
 The **traffic fee** is a small network cost that varies based on transaction size. It's deducted from your input before the swap. The quote endpoint shows this as `estimatedTrafficCost` so you know the exact cost upfront.
