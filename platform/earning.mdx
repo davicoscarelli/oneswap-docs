@@ -1,0 +1,138 @@
+---
+title: "Fee Sharing & Earning"
+description: "How OneSwap's fee model works — earn trading fees as a liquidity provider, understand APR, and maximize your returns."
+---
+
+# Fee Sharing & Earning
+
+Every swap on OneSwap generates fees. Those fees go directly to liquidity providers. Here's exactly how it works.
+
+## Fee Structure
+
+### Swap Fee — 0.3%
+
+Every token swap charges a **0.3% fee** on the input amount. This fee is distributed entirely to liquidity providers of that pool.
+
+```
+User swaps 1,000 CC → 3 CC goes to LPs → 997 CC enters the swap calculation
+```
+
+### Traffic Fee — Variable
+
+The Canton Network charges a small traffic fee per transaction. This is separate from the swap fee and goes to the network, not to LPs. The exact amount varies by transaction size and is shown in the swap quote.
+
+### Fee Flow
+
+```
+User sends 1,000 CC
+  ├── Traffic fee → Canton Network (variable, small)
+  ├── Swap fee (0.3%) → Liquidity Providers
+  └── Remainder → Swap calculation → Output tokens to user
+```
+
+## How LPs Earn
+
+When you provide liquidity, you earn fees proportional to your share of the pool.
+
+### The Math
+
+```
+Your earnings per swap = Swap fee × (Your LP tokens / Total LP tokens)
+```
+
+**Example:**
+
+| | Value |
+|---|---|
+| Your LP tokens | 100 |
+| Total LP tokens in pool | 10,000 |
+| Your pool share | 1% |
+| Swap volume today | 500,000 CC |
+| Swap fees generated | 1,500 CC (0.3%) |
+| **Your earnings today** | **15 CC** |
+
+### How Fees Accumulate
+
+Fees don't appear as a separate balance. Instead, they increase the value of your LP tokens:
+
+1. A user swaps 1,000 CC for USDCx
+2. 3 CC (0.3%) is added to the pool reserves
+3. Your LP tokens now represent a slightly larger share of reserves
+4. When you withdraw, you receive more tokens than you deposited
+
+This means your earnings are **automatic and continuous** — no claiming or harvesting required.
+
+## Understanding APR
+
+The **Annual Percentage Rate (APR)** shown on each pool is calculated from recent trading activity:
+
+```
+APR = (Fees earned over 7 days / Total pool value) × (365 / 7) × 100
+```
+
+| APR | What It Means |
+|-----|---------------|
+| 0% | No swaps in the past 7 days |
+| 5% | Moderate activity — steady returns |
+| 20%+ | High volume — strong earning opportunity |
+
+<Warning>
+APR is based on historical data and is not guaranteed. Future returns depend on trading volume and can vary significantly.
+</Warning>
+
+## Earning Example — Full Walkthrough
+
+Let's say you provide liquidity to the CC/USDCx pool:
+
+**Day 0: You Deposit**
+- You add **1,000 CC** and **1,600 USDCx** to the pool
+- Total pool: 100,000 CC + 160,000 USDCx
+- Your share: **1%**
+
+**Over 30 Days: Trading Happens**
+- 2,000,000 CC in total swap volume passes through the pool
+- Swap fees generated: 6,000 CC worth of value
+- Your 1% share: **~60 CC worth of fees earned**
+
+**Day 30: You Withdraw**
+- You redeem your LP tokens
+- You receive: **1,030 CC + 1,648 USDCx** (approximate, depends on price movements)
+- Your profit: **30 CC + 48 USDCx** in fee earnings
+
+## Maximizing Returns
+
+### Choose High-Volume Pools
+
+More swaps = more fees. Look at the 24-hour volume and APR when selecting a pool.
+
+### Provide More Liquidity
+
+Your earnings scale linearly with your pool share. Doubling your deposit doubles your fee income.
+
+### Stay in the Pool Longer
+
+Fees accumulate continuously. The longer you provide liquidity, the more you earn (assuming consistent volume).
+
+### Monitor Impermanent Loss
+
+If the price ratio between the two tokens changes dramatically, your position may be worth less than if you had held the tokens separately. Fee earnings help offset this, but it's important to monitor.
+
+## Comparing Strategies
+
+| Strategy | Risk | Potential Return | Effort |
+|----------|------|-----------------|--------|
+| Hold tokens | Low | Market appreciation only | None |
+| Provide liquidity | Medium | Market appreciation + swap fees | Deposit once, monitor occasionally |
+| Active LP management | Medium-High | Optimized fee capture | Regular monitoring and rebalancing |
+
+## Featured App Rewards
+
+OneSwap participates in the Canton Network's **Featured App Rewards** program. This generates additional CC rewards from the network based on swap activity:
+
+- Each swap creates an **activity marker** on the Canton Network
+- The network distributes CC rewards to featured apps based on activity
+- These rewards supplement the platform's sustainability
+
+<Info>
+Featured App Rewards are a platform-level benefit and don't directly affect individual LP earnings. The 0.3% swap fee to LPs remains the primary earning mechanism.
+</Info>

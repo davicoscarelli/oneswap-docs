@@ -1,5 +1,5 @@
 {
-  "name": "OneSwap SDK",
+  "name": "OneSwap",
   "favicon": "favicon.svg",
   "logo": {
     "light": "/logo-black.svg",
@@ -14,6 +14,15 @@
     "custom.css"
   ],
   "navigation": [
+    {
+      "group": "Platform",
+      "pages": [
+        "platform/overview",
+        "platform/swapping",
+        "platform/liquidity",
+        "platform/earning"
+      ]
+    },
     {
       "group": "Getting Started",
       "pages": [

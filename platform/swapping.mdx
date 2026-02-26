@@ -1,0 +1,90 @@
+---
+title: "Swapping Tokens"
+description: "How token swaps work on OneSwap — pricing, slippage, fees, and the swap lifecycle."
+---
+
+# How Swapping Works
+
+OneSwap lets you exchange one token for another using automated liquidity pools. No order books, no counterparties — just pool reserves and math.
+
+## The Swap Flow
+
+<Steps>
+  <Step title="Get a Quote">
+    Choose your input token and amount. OneSwap calculates the expected output using the constant product formula, accounting for fees and price impact.
+  </Step>
+  <Step title="Create a Swap Intent">
+    Confirm the swap details and set your slippage tolerance. You receive a unique deposit address.
+  </Step>
+  <Step title="Send Your Tokens">
+    Transfer the input tokens to the deposit address from your wallet. You have **30 minutes** to complete the deposit.
+  </Step>
+  <Step title="Receive Output Tokens">
+    OneSwap detects your deposit, executes the swap, and sends the output tokens back to the same wallet you sent from. No extra steps required.
+  </Step>
+</Steps>
+
+## Pricing
+
+OneSwap uses the **constant product formula**:
+
+```
+x · y = k
+```
+
+Where `x` and `y` are the reserves of each token in the pool, and `k` is a constant. When you swap token A for token B:
+
+- You add token A to the pool (increasing `x`)
+- The pool sends you token B (decreasing `y`)
+- The product `k` stays the same (minus fees)
+
+Larger swaps relative to pool size result in more **price impact** — the difference between the quoted rate and the actual execution rate.
+
+## Fees
+
+Every swap incurs a **0.3% fee** that goes directly to liquidity providers. This fee is taken from the input amount before the swap calculation.
+
+| Fee | Amount | Goes To |
+|-----|--------|---------|
+| Swap fee | 0.3% | Liquidity providers |
+| Traffic fee | Variable | Canton Network |
+
+The **traffic fee** is a small network cost that varies based on transaction size. It's deducted from your input before the swap. The quote endpoint shows this as `estimatedTrafficCost` so you know the exact cost upfront.
+
+## Slippage Protection
+
+Token prices can change between when you get a quote and when your deposit is detected. **Slippage tolerance** protects you:
+
+- **Default**: 1%
+- **Range**: 0.1% to 50%
+- If the price moves beyond your tolerance, the swap is cancelled and your tokens are **refunded**
+
+For example, with 1% slippage on a swap expecting 100 USDCx output, the swap executes as long as you receive at least 99 USDCx. If the output would be less, you get your input tokens back.
+
+## Swap Lifecycle
+
+Every swap goes through a status lifecycle:
+
+```
+pending → deposit_received → matched → completed
+```
+
+**Failure states** (tokens are always refunded):
+
+| Status | What Happened |
+|--------|---------------|
+| `expired` | No deposit received within 30 minutes |
+| `slippage_failed` | Price moved beyond your tolerance |
+| `insufficient_amount` | Deposit was below the minimum (traffic fee) |
+| `insufficient_liquidity` | Pool didn't have enough reserves |
+
+<Info>
+Tokens are always refunded on failure. You never lose funds due to a failed swap.
+</Info>
+
+## Tips
+
+- **Check price impact** before large swaps. High impact means you're moving the price significantly.
+- **Use reasonable slippage** — 1% works for most swaps. Only increase for volatile markets.
+- **Quotes expire in 30 seconds** — refresh if your quote is stale.
+- **One wallet, one swap** — output tokens are sent to the same address you send from.
