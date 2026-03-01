@@ -139,3 +139,36 @@ Returns `WithdrawResponse` with `lpTokensWithdrawn`, `returnedA`, `returnedB`, `
 | Method | Description |
 |---|---|
 | `client.track(partyId)` | All swaps + LP for a Canton party |
+
+## Fee Earnings
+
+| Method | Description |
+|---|---|
+| `client.fees.getEarnings()` | Current fee share config, accumulated fees, and total collected |
+| `client.fees.getEarningsHistory(params?)` | Paginated list of individual fee events |
+| `client.fees.getCollections(params?)` | Paginated list of fee collections (payouts) |
+
+### `fees.getEarningsHistory` params
+
+| Param | Required | Description |
+|---|---|---|
+| `page` | no | Page number (default `1`) |
+| `limit` | no | Results per page (default `50`, max `100`) |
+| `token` | no | Filter by token name (e.g. `'CC'`) |
+
+### `fees.getCollections` params
+
+| Param | Required | Description |
+|---|---|---|
+| `page` | no | Page number (default `1`) |
+| `limit` | no | Results per page (default `50`, max `100`) |
+
+### `fees.getEarnings` response
+
+| Field | Type | Description |
+|---|---|---|
+| `feeSharePct` | `number \| null` | Your fee share as a decimal (e.g. `0.25` = 25%) |
+| `feeWallet` | `string \| null` | Canton party ID for fee collection |
+| `accumulated` | `Record<string, string>` | Pending fees by token |
+| `totalCollected` | `Record<string, string>` | Lifetime collected fees by token |
+| `recentEvents` | `FeeEvent[]` | Last 20 fee events |

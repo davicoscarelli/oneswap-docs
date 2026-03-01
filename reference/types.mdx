@@ -285,6 +285,56 @@ interface TrackSwapItem {
 }
 ```
 
+## Fee Earnings
+
+```typescript
+interface FeeEarnings {
+  feeSharePct: number | null
+  feeWallet: string | null
+  accumulated: Record<string, string>
+  totalCollected: Record<string, string>
+  recentEvents: FeeEvent[]
+}
+
+interface FeeEvent {
+  developerId: string
+  poolId: string
+  tokenName: string
+  inputAmount: string
+  platformFee: string
+  developerFee: string
+  feeSharePct: number
+  createdAt: string
+}
+
+interface FeeEarningsHistoryResponse {
+  events: FeeEvent[]
+  pagination: {
+    page: number
+    limit: number
+    count: number
+  }
+}
+
+interface FeeCollection {
+  developerId: string
+  tokenName: string
+  amount: string
+  feeWallet: string
+  collectedAt: string
+  transactionId: string | null
+}
+
+interface FeeCollectionsResponse {
+  collections: FeeCollection[]
+  pagination: {
+    page: number
+    limit: number
+    count: number
+  }
+}
+```
+
 ## Errors
 
 ```typescript
