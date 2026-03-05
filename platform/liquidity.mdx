@@ -56,8 +56,9 @@ After 1,000 swaps generating fees, your 1% share now represents more CC and USDC
 ## LP Intent Lifecycle
 
 ```
-pending → partial (one token received) → completed (both received, LP minted)
+pending → partial (one token received) → processing (both received) → completed (LP minted)
                                         → expired (second token didn't arrive in time)
+        → cancelled (user cancelled)
         → expired (no deposits in 30 min)
 ```
 
@@ -65,7 +66,9 @@ pending → partial (one token received) → completed (both received, LP minted
 |--------|---------|
 | `pending` | Waiting for both token deposits |
 | `partial` | One token received, waiting for the second |
+| `processing` | Both tokens received, forwarding to pool |
 | `completed` | Both tokens received, LP tokens minted |
+| `cancelled` | Cancelled by user (only from pending/partial) |
 | `expired` | Timeout reached — any deposited tokens are refunded |
 
 ## Withdrawing Liquidity

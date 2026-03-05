@@ -34,11 +34,23 @@ Or poll manually:
 const status = await client.liquidity.getStatus(lp.intentId)
 ```
 
+## Cancel an LP intent
+
+Cancel a pending or partial LP intent:
+
+```typescript
+await client.liquidity.cancel(lp.poolId, lp.intentId)
+```
+
+Only `pending` and `partial` intents can be cancelled. Once both tokens are received (`processing`), the intent cannot be cancelled.
+
 ## Status lifecycle
 
 ```
 pending → partial (one token received)
-        → completed (both received, LP minted)
+        → processing (both received, forwarding)
+        → completed (LP minted)
+        → cancelled (user cancelled)
         → expired (not completed in 30 min)
 ```
 
