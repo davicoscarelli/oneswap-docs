@@ -17,15 +17,15 @@ interface TrafficCostEstimate {
 interface Quote {
   inputToken: string
   outputToken: string
-  inputAmount: string
-  outputAmount: string
+  inputAmount: string             // gross amount the user sends
+  outputAmount: string            // quoted from inputAmountAfterTrafficFee
   rate: string
   priceImpact: string
-  fee: number
+  fee: number                     // swap fee rate, e.g. 0.02 for 2%
   poolId: string
   expiresIn: number      // seconds
   estimatedTrafficCost?: TrafficCostEstimate
-  trafficFeeInInput?: string
+  trafficFeeInInput?: string      // traffic recovery converted into the input token
   inputAmountAfterTrafficFee?: string
 }
 ```
@@ -87,6 +87,8 @@ interface PoolStats {
   swapCount24h: number
 }
 ```
+
+`tokenA.reserve`, `tokenB.reserve`, and `tvl` use effective reserves. Pending platform, developer, and traffic-fee collections are excluded so LP value is not overstated.
 
 ## Swap
 

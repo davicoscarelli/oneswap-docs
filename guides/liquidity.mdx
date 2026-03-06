@@ -87,6 +87,8 @@ for (const pos of positions.positions) {
 }
 ```
 
+The position values returned here use effective reserves. Pending platform, developer, and traffic-fee collections are excluded from the pool balances so LP value reflects what is actually withdrawable by LPs.
+
 ## Check earnings
 
 ```typescript
@@ -96,5 +98,7 @@ console.log(`APR: ${earnings.apr}%`)
 console.log(`Projected daily earnings: ${earnings.estimatedDailyEarnings}`)
 console.log(`LP share: ${earnings.lpSharePercent}%`)
 ```
+
+Projected APR and current withdrawable amounts are calculated from the same effective reserve view, not from raw swap-party balances that still include pending fee collections.
 
 Use `client.liquidity.list()` to inspect recent LP intents created through your API key.

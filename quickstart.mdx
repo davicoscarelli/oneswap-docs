@@ -47,6 +47,8 @@ console.log(quote.trafficFeeInInput)
 console.log(quote.inputAmountAfterTrafficFee)
 ```
 
+`quote.outputAmount` is already calculated from `quote.inputAmountAfterTrafficFee`. The traffic recovery is separate from the 2% swap fee.
+
 ## 6. Create a swap intent
 
 ```typescript

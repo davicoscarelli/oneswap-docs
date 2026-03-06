@@ -108,3 +108,7 @@ const quote = await client.quotes.get({
 ```
 
 `quote.estimatedTrafficCost`, `quote.trafficFeeInInput`, and `quote.inputAmountAfterTrafficFee` help you account for Canton execution costs before the swap executes.
+
+- `trafficFeeInInput` is the amount deducted from the input token as traffic-cost recovery.
+- `outputAmount` is quoted from `inputAmountAfterTrafficFee`, not from the gross deposit amount.
+- The traffic fee is separate from the 2% swap fee and is not shared with LPs or SDK developers.
