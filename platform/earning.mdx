@@ -91,11 +91,13 @@ This means your earnings are **automatic and continuous** — no claiming or har
 
 ## Understanding APR
 
-The **Annual Percentage Rate (APR)** shown on each pool is calculated from recent trading activity:
+The **Annual Percentage Rate (APR)** shown on each supported pool is calculated from recent trading activity:
 
 ```
 APR = (LP fees earned over 7 days / Total pool value) × (365 / 7) × 100
 ```
+
+OneSwap only shows APR when it can value both sides of the pool in a shared quote token honestly. In practice, that means stable-quoted pools such as CC/USDCx.
 
 | APR | What It Means |
 |-----|---------------|
@@ -150,7 +152,7 @@ No upfront cost. No minimum volume. You earn from the first swap.
 
 ### For Liquidity Providers
 
-- **Choose high-volume pools** — More swaps = more fees. Check 24-hour volume and APR.
+- **Choose high-volume pools** — More swaps = more fees. Check 24-hour volume and APR on supported pools.
 - **Provide more liquidity** — Your earnings scale linearly with your pool share.
 - **Stay in the pool longer** — Fees accumulate continuously.
 - **Monitor impermanent loss** — If the price ratio changes dramatically, fee earnings may not fully offset the loss.

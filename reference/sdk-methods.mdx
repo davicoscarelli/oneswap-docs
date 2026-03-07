@@ -21,7 +21,7 @@ const client = new OneSwap({ apiKey: 'os_live_...' })
 |---|---|
 | `client.pools.list()` | All pools with effective reserves, fee, and LP supply |
 | `client.pools.get(poolId)` | Pool detail with `swapAddress` and `lpAddress` |
-| `client.pools.getStats(poolId)` | `apr`, `apy`, `volume24h`, `fees24h`, `lpFees24h`, `tvl`, `swapCount24h` computed from effective reserves |
+| `client.pools.getStats(poolId, { days? })` | `apr`, `apy`, `volume24h`, `fees24h`, `lpFees24h`, `tvl`, `swapCount24h`, and APR metadata computed from fee events and effective reserves. Default lookback is 7 days. |
 
 ## Tokens
 
@@ -33,7 +33,7 @@ const client = new OneSwap({ apiKey: 'os_live_...' })
 
 | Method | Description |
 |---|---|
-| `client.quotes.get({ from, to, amount })` | Price quote. Includes `estimatedTrafficCost`, `trafficFeeInInput`, and `inputAmountAfterTrafficFee`. `outputAmount` is based on the net input after traffic recovery. |
+| `client.quotes.get({ from, to, amount, receiverParty? })` | Price quote. Includes `estimatedTrafficCost`, `trafficFeeInInput`, and `inputAmountAfterTrafficFee`. `outputAmount` is based on the net input after traffic recovery. |
 
 ## Wallets
 
@@ -61,11 +61,17 @@ const client = new OneSwap({ apiKey: 'os_live_...' })
 | `amount` | yes | Input amount |
 | `slippageTolerance` | no | `0.001`–`0.5`, default `0.01` |
 | `walletAddress` | yes | User's actual Canton party ID |
-| `outputAddress` | no | Override destination party for swap output |
+| `outputAddress` | no | Deprecated. Ignored by the SDK client because the current execution flow always pays back to the depositor party. |
 
 ### SwapIntent object
 
 Properties: `intentId`, `depositAddress`, `expectedOutput`, `minOutput`, `expiresAt`, `instructions`.
+
+Notes:
+- `depositAddress` is the pool swap party, not the user's own party.
+- The deposit must be sent from the same `walletAddress` used to create the swap intent.
+- A different wallet or Canton party will not complete the swap intent.
+- `outputAddress` in the response is the resolved destination party. In the current flow it matches the depositor party.
 
 | Method / Event | Description |
 |---|---|
@@ -75,6 +81,10 @@ Properties: `intentId`, `depositAddress`, `expectedOutput`, `minOutput`, `expire
 | `'slippage_failed'` | Refunded because price moved |
 | `'insufficient_amount'` | Refunded because input is below traffic cost |
 | `'insufficient_liquidity'` | Refunded because pool liquidity is insufficient |
+| `'output_failed'` | Output transfer failed and the input refund succeeded |
+| `'no_output_holdings'` | No output inventory was available on the swap party |
+| `'failed'` | Swap reached a generic terminal failure state |
+| `'refund_failed'` | Refund path failed and manual intervention is required |
 | `'expired'` | Timed out |
 
 ## Liquidity
@@ -101,6 +111,7 @@ Properties: `intentId`, `depositAddress`, `lpAddress`, `expiresAt`, `instruction
 Notes:
 - `depositAddress` / `lpAddress` is the pool LP party, not the user's own party.
 - The user must send both deposits from the same `walletAddress`.
+- A different wallet or Canton party will not complete the LP intent.
 - LP intents expire after 30 minutes if the pair is not completed.
 - LP positions are credited in OneSwap's database, not as a user-held on-ledger LP token.
 
@@ -120,7 +131,7 @@ Notes:
 | Method | Description |
 |---|---|
 | `client.positions.list(walletAddress)` | LP positions with share percentage and current value based on effective reserves |
-| `client.positions.getEarnings(walletAddress, poolId)` | APR, APY, projected earnings, and current withdrawable amounts based on effective reserves |
+| `client.positions.getEarnings(walletAddress, poolId)` | APR, APY, projected earnings, and current withdrawable amounts using the same effective-reserve and fee-event APR calculation shown by the app |
 
 ## History
 

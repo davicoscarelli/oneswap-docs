@@ -24,13 +24,15 @@ This returns a `SwapIntent` with everything you need:
 | `expiresAt` | Intent expiration timestamp |
 | `instructions` | Step-by-step transfer instructions |
 
+The deposit must be sent from the same `walletAddress` used to create the intent. A different wallet or Canton party will not complete the swap.
+
 ## Direct-party flow
 
 1. Create the intent with the user's Canton party in `walletAddress`
 2. OneSwap returns the pool swap party as `depositAddress`
-3. The user sends the input token directly from that party to `depositAddress`
+3. The user sends the input token directly from that same party to `depositAddress`
 4. OneSwap detects the deposit and executes the swap
-5. Output returns directly to the same party unless `outputAddress` is set
+5. Output returns directly to the same party that made the deposit
 
 ## Slippage tolerance
 
@@ -48,19 +50,9 @@ const swap = await client.swaps.create({
 
 If the actual output falls below `minOutput`, the swap is refunded.
 
-## Send output to a different party
+## Output routing
 
-```typescript
-const swap = await client.swaps.create({
-  fromToken: 'Amulet',
-  toToken: 'USDCx',
-  amount: '100',
-  walletAddress: 'alice::12205a8c...',
-  outputAddress: 'some-other-party::namespace'
-})
-```
-
-If you omit `outputAddress`, output is sent back to the depositor party.
+The current SDK flow always returns swap output to the same Canton party that sends the deposit. `outputAddress` remains in the type surface for backward compatibility, but the SDK ignores it and `/api/v1/swaps` resolves output back to the depositor party.
 
 ## Track swap status
 
@@ -77,6 +69,8 @@ swap.on('processing', () => console.log('Deposit detected'))
 swap.on('completed', (s) => console.log(`Got ${s.actualOutput}`))
 swap.on('slippage_failed', () => console.log('Refunded: price moved'))
 swap.on('insufficient_amount', () => console.log('Refunded: below traffic cost'))
+swap.on('output_failed', () => console.log('Output transfer failed, input was refunded'))
+swap.on('refund_failed', () => console.log('Refund failed, manual intervention required'))
 swap.on('expired', () => console.log('Expired'))
 ```
 
@@ -94,8 +88,13 @@ pending → processing → sending_output → completed
                     → insufficient_amount
                     → insufficient_liquidity
                     → output_failed
+                    → no_output_holdings
+                    → failed
+                    → refund_failed
          → expired
 ```
+
+Most validation failures refund the input automatically. Rare operational states such as `no_output_holdings`, `failed`, and `refund_failed` mean the swap reached a terminal state that may require manual investigation.
 
 ## Quotes
 
@@ -103,7 +102,8 @@ pending → processing → sending_output → completed
 const quote = await client.quotes.get({
   from: 'Amulet',
   to: 'USDCx',
-  amount: '100'
+  amount: '100',
+  receiverParty: 'alice::12205a8c...'
 })
 ```
 
@@ -111,4 +111,5 @@ const quote = await client.quotes.get({
 
 - `trafficFeeInInput` is the amount deducted from the input token as traffic-cost recovery.
 - `outputAmount` is quoted from `inputAmountAfterTrafficFee`, not from the gross deposit amount.
+- `receiverParty` lets the quote include the same destination-party traffic assumptions used by the live execution path.
 - The traffic fee is separate from the 2% swap fee and is not shared with LPs or SDK developers.

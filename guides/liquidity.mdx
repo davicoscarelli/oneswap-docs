@@ -20,7 +20,7 @@ console.log(lp.depositAddress) // pool LP party
 console.log(lp.expiresAt)
 ```
 
-Both deposits must be sent from the same party specified in `walletAddress`.
+Both deposits must be sent from the same party specified in `walletAddress`. A different wallet or Canton party will not complete the LP intent.
 
 If the pool is currently `0/0`, the first LP sets the initial ratio manually. Otherwise `amountB` should match the live pool ratio.
 
@@ -35,6 +35,7 @@ If the pool is currently `0/0`, the first LP sets the initial ratio manually. Ot
 
 - Deposits are **direct-party only**. OneSwap does not create a separate custodial user wallet for LP deposits.
 - Both deposits must come from the **same Canton party** and match the active LP intent for that party.
+- Deposits from a different wallet or Canton party do not satisfy the active LP intent.
 - OneSwap matches liquidity deposits by the **exact deposit holding contracts**, not by sweeping arbitrary balances from the LP party.
 - If only one side arrives, or the deposit does not match the LP intent, the deposit is refunded instead of being partially used.
 - LP positions are **tracked in the OneSwap database**, not as a separate LP token in the user's wallet.

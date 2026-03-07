@@ -12,11 +12,16 @@ import { OneSwap } from '@oneswap/sdk'
 
 const client = new OneSwap({ apiKey: 'os_live_...' })
 
-// get a price quote
-const quote = await client.quotes.get({ from: 'Amulet', to: 'USDCx', amount: '100' })
-
 // register the user's Canton party once
-await client.wallets.create({ walletAddress: 'alice::12205a8c...' })
+const wallet = await client.wallets.create({ walletAddress: 'alice::12205a8c...' })
+
+// get a price quote
+const quote = await client.quotes.get({
+  from: 'Amulet',
+  to: 'USDCx',
+  amount: '100',
+  receiverParty: wallet.walletAddress
+})
 
 // create a swap intent
 const swap = await client.swaps.create({
@@ -45,7 +50,7 @@ console.log(`Received ${result.actualOutput} USDCx`)
 2. OneSwap returns the pool swap party as the `depositAddress`
 3. The user sends tokens directly from that party to the pool party
 4. OneSwap executes the swap automatically
-5. Output returns directly to the same party unless you set `outputAddress`
+5. Output returns directly to the same party that makes the deposit
 
 That's it. No extra wallet layer, no backend forwarding step, no withdraw hop.
 

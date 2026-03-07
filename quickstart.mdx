@@ -36,7 +36,8 @@ This does not create a separate platform wallet. It just links that party to you
 const quote = await client.quotes.get({
   from: 'Amulet',
   to: 'USDCx',
-  amount: '100'
+  amount: '100',
+  receiverParty: wallet.walletAddress
 })
 
 console.log(quote.outputAmount)
@@ -66,7 +67,7 @@ console.log(swap.expiresAt)
 
 ## 7. Send the deposit
 
-The user sends tokens from `alice::12205a8c...` directly to `swap.depositAddress`.
+The user sends tokens from `alice::12205a8c...` directly to `swap.depositAddress`. Do not send from a different wallet or Canton party, or the swap will not complete.
 
 ## 8. Wait for completion
 
@@ -83,7 +84,7 @@ If slippage is exceeded, the swap is refunded automatically to the depositor par
 
 <CardGroup cols={2}>
   <Card title="Swaps Guide" icon="arrow-right-arrow-left" href="/guides/swaps">
-    Slippage, output addresses, status polling
+    Slippage, status polling, and failure states
   </Card>
   <Card title="Wallets Guide" icon="wallet" href="/guides/wallets">
     Register parties and query balances

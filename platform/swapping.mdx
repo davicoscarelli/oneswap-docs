@@ -80,9 +80,12 @@ pending → processing → sending_output → completed
 | `slippage_failed` | Price moved beyond your tolerance |
 | `insufficient_amount` | Deposit was below the minimum (traffic fee) |
 | `insufficient_liquidity` | Pool didn't have enough reserves |
+| `output_failed` | Output transfer failed after execution; the input refund succeeded |
+| `no_output_holdings` | The swap party had no output holdings available for payout |
+| `refund_failed` | A refund attempt failed and needs manual intervention |
 
 <Info>
-Tokens are always refunded on failure. You never lose funds due to a failed swap.
+Most quote and liquidity failures are refunded automatically. Rare operational states such as `no_output_holdings` or `refund_failed` require manual investigation by OneSwap.
 </Info>
 
 ## Tips

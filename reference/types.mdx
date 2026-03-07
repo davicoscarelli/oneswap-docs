@@ -85,10 +85,15 @@ interface PoolStats {
   lpFees24h: string
   tvl: string
   swapCount24h: number
+  aprSupported?: boolean
+  aprQuoteToken?: string | null
+  aprLookbackDays?: number
 }
 ```
 
 `tokenA.reserve`, `tokenB.reserve`, and `tvl` use effective reserves. Pending platform, developer, and traffic-fee collections are excluded so LP value is not overstated.
+
+`aprSupported` is `false` when OneSwap cannot value both sides of a pool in a shared quote token honestly. Today that mainly affects pools without a stable-quoted side.
 
 ## Swap
 
@@ -104,6 +109,7 @@ interface SwapIntentResponse {
   expectedOutput: string | null
   minOutput: string | null
   slippageTolerance: number
+  outputAddress: string | null
   expiresAt: string
   instructions: Record<string, string>
 }
@@ -111,7 +117,7 @@ interface SwapIntentResponse {
 interface SwapStatusResponse {
   intentId: string
   poolId: string
-  status: 'pending' | 'matched' | 'deposit_received' | 'forwarded' | 'processing' | 'sending_output' | 'completed' | 'slippage_failed' | 'insufficient_liquidity' | 'insufficient_amount' | 'output_failed' | 'expired' | 'cancelled'
+  status: 'pending' | 'matched' | 'deposit_received' | 'forwarded' | 'processing' | 'sending_output' | 'completed' | 'slippage_failed' | 'insufficient_liquidity' | 'insufficient_amount' | 'output_failed' | 'no_output_holdings' | 'failed' | 'refund_failed' | 'expired' | 'cancelled'
   inputToken: string
   outputToken: string
   expectedAmount: string
@@ -119,6 +125,7 @@ interface SwapStatusResponse {
   actualOutput: string | null
   minOutput: string | null
   slippageTolerance: number
+  outputAddress: string | null
   matchedAt: string | null
   createdAt: string
   expiresAt: string
@@ -337,6 +344,11 @@ class ValidationError extends OneSwapError {}  // 400
 class NotFoundError extends OneSwapError {}    // 404
 class RateLimitError extends OneSwapError {}   // 429
 class SlippageError extends OneSwapError {}    // swap refunded
+class InsufficientLiquidityError extends OneSwapError {}
+class InsufficientAmountError extends OneSwapError {}
+class OutputFailedError extends OneSwapError {}
+class SwapFailedError extends OneSwapError {}
+class RefundFailedError extends OneSwapError {}
 class LpRefundedError extends OneSwapError {}  // LP intent refunded
 class LpFailedError extends OneSwapError {}    // LP intent failed
 class ExpiredError extends OneSwapError {}     // intent timed out

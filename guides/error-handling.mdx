@@ -14,6 +14,9 @@ import {
   NotFoundError,    // 404 — pool/intent/wallet not found
   RateLimitError,   // 429 — too many requests
   SlippageError,    // swap output below minimum
+  OutputFailedError,// swap output transfer failed
+  SwapFailedError,  // generic terminal swap failure
+  RefundFailedError,// swap refund failed
   LpRefundedError,  // LP deposit refunded
   LpFailedError,    // LP settlement failed
   ExpiredError,     // intent expired before completion
@@ -31,6 +34,15 @@ try {
   if (err instanceof SlippageError) {
     // Price moved too much, tokens refunded
     console.log('Swap refunded due to slippage')
+  } else if (err instanceof OutputFailedError) {
+    // Output transfer failed or no output holdings were available
+    console.log('Swap payout failed — inspect the terminal intent status')
+  } else if (err instanceof RefundFailedError) {
+    // Refund path failed after a terminal swap error
+    console.log('Swap refund failed — manual intervention is required')
+  } else if (err instanceof SwapFailedError) {
+    // Generic terminal failure
+    console.log('Swap failed — inspect the intent before retrying')
   } else if (err instanceof ExpiredError) {
     // User didn't deposit in time
     console.log('Intent expired — no deposit detected')
@@ -80,6 +92,9 @@ err.response   // raw response body from the API
 | `NotFoundError` | Pool or intent doesn't exist | Check the ID |
 | `RateLimitError` | Too many requests | Back off and retry |
 | `SlippageError` | Price moved during swap | Retry with higher tolerance or try again |
+| `OutputFailedError` | Output payout failed or the swap party had no output holdings | Inspect the terminal intent status before retrying |
+| `SwapFailedError` | The swap reached a generic terminal failure state | Investigate the intent before retrying |
+| `RefundFailedError` | The refund path failed after a swap error | Manual intervention is required |
 | `LpRefundedError` | LP deposit no longer matched the live pool | Refresh pool data and create a new intent |
 | `LpFailedError` | LP settlement failed after deposit detection | Investigate the intent before retrying |
 | `ValidationError` (400) | Input amount below traffic cost minimum | Increase the swap amount. The error response includes `minimumAmount`. |
