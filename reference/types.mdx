@@ -3,9 +3,31 @@ title: Types
 description: TypeScript interfaces exported by the SDK.
 ---
 
+## Client config
+
+```typescript
+interface OneSwapConfig {
+  apiKey: string
+  timeout?: number
+  walletToken?: string | (() => string | Promise<string | undefined> | undefined)
+}
+```
+
+Pass `Amulet` in SDK params when you mean `CC (Amulet)`.
+
 ## Quote
 
 ```typescript
+interface QuoteParams {
+  from: string
+  to: string
+  amount: string
+  receiverParty?: string
+  poolId?: string
+  fromAdmin?: string
+  toAdmin?: string
+}
+
 interface TrafficCostEstimate {
   bytes: number
   usd: string
@@ -16,14 +38,16 @@ interface TrafficCostEstimate {
 
 interface Quote {
   inputToken: string
+  inputTokenAdmin: string
   outputToken: string
+  outputTokenAdmin: string
   inputAmount: string             // gross amount the user sends
   outputAmount: string            // quoted from inputAmountAfterTrafficFee
   rate: string
   priceImpact: string
   fee: number                     // swap fee rate, e.g. 0.02 for 2%
   poolId: string
-  expiresIn: number      // seconds
+  expiresIn: number               // seconds
   estimatedTrafficCost?: TrafficCostEstimate
   trafficFeeInInput?: string      // traffic recovery converted into the input token
   inputAmountAfterTrafficFee?: string
@@ -33,10 +57,16 @@ interface Quote {
 ## Pool
 
 ```typescript
+interface PoolToken {
+  name: string
+  admin: string
+  reserve: string
+}
+
 interface Pool {
   id: string
-  tokenA: { name: string; reserve: string }
-  tokenB: { name: string; reserve: string }
+  tokenA: PoolToken
+  tokenB: PoolToken
   fee: number
   lpTokens: string
 }
@@ -63,6 +93,31 @@ interface PoolStats {
   aprQuoteToken?: string | null
   aprLookbackDays?: number
 }
+
+interface PoolStatsParams {
+  days?: number
+}
+
+interface Token {
+  name: string
+  admin: string
+}
+
+interface TokenListResponse {
+  tokens: Token[]
+}
+
+interface AmbiguousPoolCandidate {
+  poolId: string
+  tokenA: Token
+  tokenB: Token
+}
+
+interface AmbiguousPoolPairResponse {
+  error: string
+  code: 'ambiguous_pool_pair'
+  candidates: AmbiguousPoolCandidate[]
+}
 ```
 
 `tokenA.reserve`, `tokenB.reserve`, and `tvl` use effective reserves. Pending platform, developer, and traffic-fee collections are excluded so LP value is not overstated.
@@ -72,13 +127,45 @@ interface PoolStats {
 ## Swap
 
 ```typescript
+type SwapStatus =
+  | 'pending'
+  | 'matched'
+  | 'deposit_received'
+  | 'forwarded'
+  | 'processing'
+  | 'sending_output'
+  | 'completed'
+  | 'slippage_failed'
+  | 'insufficient_liquidity'
+  | 'insufficient_amount'
+  | 'output_failed'
+  | 'no_output_holdings'
+  | 'failed'
+  | 'refund_failed'
+  | 'expired'
+  | 'cancelled'
+
+interface CreateSwapParams {
+  fromToken: string
+  toToken: string
+  amount: string
+  walletAddress?: string
+  slippageTolerance?: number
+  poolId?: string
+  fromAdmin?: string
+  toAdmin?: string
+  outputAddress?: string
+}
+
 interface SwapIntentResponse {
   intentId: string
   poolId: string
   depositAddress: string
   swapAddress: string
   inputToken: string
+  inputTokenAdmin: string
   outputToken: string
+  outputTokenAdmin: string
   expectedAmount: string
   expectedOutput: string | null
   minOutput: string | null
@@ -91,7 +178,7 @@ interface SwapIntentResponse {
 interface SwapStatusResponse {
   intentId: string
   poolId: string
-  status: 'pending' | 'matched' | 'deposit_received' | 'forwarded' | 'processing' | 'sending_output' | 'completed' | 'slippage_failed' | 'insufficient_liquidity' | 'insufficient_amount' | 'output_failed' | 'no_output_holdings' | 'failed' | 'refund_failed' | 'expired' | 'cancelled'
+  status: SwapStatus
   inputToken: string
   outputToken: string
   expectedAmount: string
@@ -105,50 +192,35 @@ interface SwapStatusResponse {
   expiresAt: string
 }
 
-// Returned by swaps.list() — a subset of SwapStatusResponse
-interface SwapListItem {
-  intentId: string
-  poolId: string
-  status: SwapStatus
-  inputToken: string
-  outputToken: string
-  expectedAmount: string
-  expectedOutput: string | null
-  createdAt: string
-  expiresAt: string
-}
-
-interface SwapListResponse {
-  count: number
-  swaps: SwapListItem[]
-}
-
 interface CancelSwapResponse {
   success: boolean
 }
 ```
 
-## History
+`walletAddress` is optional in `CreateSwapParams`, but if you send it, it must match the wallet token supplied in `OneSwapConfig.walletToken`.
+
+`outputAddress` is deprecated in `CreateSwapParams`. Current OneSwap execution resolves swap output back to the same party that made the deposit.
+
+## Wallet auth
 
 ```typescript
-interface HistoryResponse {
-  swaps: {
-    count: number
-    items: SwapHistoryItem[]
-  }
+interface WalletChallengeResponse {
+  partyId: string
+  nonce: string
+  message: string
+  expiresIn: number
 }
 
-// History items are a subset of SwapStatusResponse
-interface SwapHistoryItem {
-  intentId: string
-  poolId: string
-  status: SwapStatus
-  inputToken: string
-  outputToken: string
-  expectedAmount: string
-  expectedOutput: string | null
-  createdAt: string
-  expiresAt: string
+interface VerifyWalletChallengeParams {
+  partyId: string
+  nonce: string
+  signature: string
+  publicKey: string
+}
+
+interface VerifyWalletChallengeResponse {
+  partyId: string
+  token: string
 }
 ```
 
@@ -169,66 +241,19 @@ interface TrackSwapItem {
   outputToken: string
   expectedAmount: string
   expectedOutput: string | null
+  actualOutput: string | null
   matchedAt: string | null
   createdAt: string
   expiresAt: string
 }
-```
 
-## Fee Earnings
-
-```typescript
-interface FeeEarnings {
-  feeSharePct: number | null
-  feeWallet: string | null
-  payoutMode: 'direct' | 'wallet'
-  accumulated: Record<string, string>
-  totalCollected: Record<string, string>
-  recentEvents: FeeEvent[]
-}
-
-interface FeeEvent {
-  developerId: string
-  poolId: string
-  tokenName: string
-  inputAmount: string
-  platformFee: string
-  developerFee: string
-  feeSharePct: number
-  createdAt: string
-}
-
-interface FeeEarningsHistoryResponse {
-  events: FeeEvent[]
-  pagination: {
-    page: number
-    limit: number
-    count: number
-  }
-}
-
-interface FeeCollection {
-  id: number
-  developerId: string
-  poolId: string | null
-  tokenName: string
-  amount: string
-  feeWallet: string | null
-  destinationParty: string | null
-  status: string
-  collectedAt: string
-  transactionId: string | null
-}
-
-interface FeeCollectionsResponse {
-  collections: FeeCollection[]
-  pagination: {
-    page: number
-    limit: number
-    count: number
-  }
+interface WaitOptions {
+  pollInterval?: number
+  timeout?: number
 }
 ```
+
+Developer earnings, collections, and account analytics stay on the wallet-authenticated OneSwap developer portal instead of the public SDK.
 
 ## Errors
 
@@ -242,12 +267,18 @@ class AuthError extends OneSwapError {}        // 401
 class ValidationError extends OneSwapError {}  // 400
 class NotFoundError extends OneSwapError {}    // 404
 class RateLimitError extends OneSwapError {}   // 429
+class ConflictError extends OneSwapError {}    // 409
+class AmbiguousPoolPairError extends ConflictError {
+  candidates: AmbiguousPoolPairResponse['candidates']
+}
 class SlippageError extends OneSwapError {}    // swap refunded
 class InsufficientLiquidityError extends OneSwapError {}
 class InsufficientAmountError extends OneSwapError {}
 class OutputFailedError extends OneSwapError {}
 class SwapFailedError extends OneSwapError {}
 class RefundFailedError extends OneSwapError {}
-class ExpiredError extends OneSwapError {}     // intent timed out
+class ExpiredError extends OneSwapError {}     // intent timed out or was cancelled
 class ServerError extends OneSwapError {}      // 500
+class NetworkError extends OneSwapError {}
+class TimeoutError extends OneSwapError {}
 ```

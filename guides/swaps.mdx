@@ -6,33 +6,62 @@ description: Execute token swaps with slippage protection and direct-party settl
 ## Basic swap
 
 ```typescript
-const swap = await client.swaps.create({
+import { OneSwap } from '@oneswap/sdk'
+
+const authClient = new OneSwap({ apiKey: 'os_live_...' })
+
+const challenge = await authClient.walletAuth.requestChallenge('alice::12205a8c...')
+const signature = await wallet.signMessage(challenge.message)
+const verified = await authClient.walletAuth.verifyChallenge({
+  partyId: 'alice::12205a8c...',
+  nonce: challenge.nonce,
+  signature,
+  publicKey: wallet.publicKey,
+})
+
+const swapClient = new OneSwap({
+  apiKey: 'os_live_...',
+  walletToken: verified.token,
+})
+
+const swap = await swapClient.swaps.create({
   fromToken: 'Amulet',
   toToken: 'USDCx',
   amount: '100',
-  walletAddress: 'alice::12205a8c...'
+  walletAddress: 'alice::12205a8c...',
 })
 ```
+
+In SDK params and responses, use `Amulet` when you mean `CC (Amulet)`.
 
 This returns a `SwapIntent` with everything you need:
 
 | Field | Description |
 |---|---|
 | `depositAddress` | Pool swap party that should receive the deposit |
+| `swapAddress` | The same pool swap party, returned explicitly for clarity |
 | `expectedOutput` | Estimated output amount |
 | `minOutput` | Minimum accepted after slippage |
+| `outputAddress` | Resolved destination party for the payout |
 | `expiresAt` | Intent expiration timestamp |
 | `instructions` | Step-by-step transfer instructions |
 
-The deposit must be sent from the same `walletAddress` used to create the intent. A different wallet or Canton party will not complete the swap.
+The deposit must be sent from the same authenticated wallet party that created the intent. A different wallet or Canton party will not complete the swap.
+
+Swap intents currently remain valid for 24 hours. Use `swap.expiresAt` from the response instead of hard-coding a shorter timeout.
 
 ## Direct-party flow
 
-1. Create the intent with the user's Canton party in `walletAddress`
-2. OneSwap returns the pool swap party as `depositAddress`
-3. The user sends the input token directly from that same party to `depositAddress`
-4. OneSwap detects the deposit and executes the swap
-5. Output returns directly to the same party that made the deposit
+1. Request a OneSwap wallet-auth challenge for the user's `party ID`
+2. Have the user sign the challenge with the same wallet that will deposit
+3. Verify the signature and store the returned wallet token
+4. Create the intent with `client.swaps.create(...)`
+5. OneSwap returns the pool swap party as `depositAddress`
+6. The user sends the input token directly from that same party to `depositAddress`
+7. OneSwap detects the deposit and executes the swap
+8. Output returns directly to the same party that made the deposit
+
+`walletAddress` is a consistency check, not the trust root. The verified wallet token is what authorizes the swap.
 
 ## Slippage tolerance
 
@@ -44,7 +73,7 @@ const swap = await client.swaps.create({
   toToken: 'USDCx',
   amount: '100',
   slippageTolerance: 0.005,
-  walletAddress: 'alice::12205a8c...'
+  walletAddress: 'alice::12205a8c...',
 })
 ```
 
@@ -54,6 +83,38 @@ If the actual output falls below `minOutput`, the swap is refunded.
 
 The current SDK flow always returns swap output to the same Canton party that sends the deposit. `outputAddress` remains in the type surface for backward compatibility, but the SDK ignores it and `/api/v1/swaps` resolves output back to the depositor party.
 
+## Disambiguating duplicate symbols
+
+If the same token symbol exists under multiple admins, use the token list plus admin fields to select the exact pool.
+
+```typescript
+const tokens = await client.tokens.list()
+
+const usdc = tokens.tokens.find(
+  (token) => token.name === 'USDCx' && token.admin === 'admin::issuer-a'
+)
+
+const quote = await client.quotes.get({
+  from: 'USDCx',
+  to: 'Amulet',
+  amount: '250',
+  fromAdmin: usdc?.admin,
+  toAdmin: 'DSO',
+})
+
+const swap = await client.swaps.create({
+  fromToken: 'USDCx',
+  toToken: 'Amulet',
+  amount: '250',
+  walletAddress: 'alice::12205a8c...',
+  poolId: quote.poolId,
+  fromAdmin: usdc?.admin,
+  toAdmin: 'DSO',
+})
+```
+
+If you omit those fields for an ambiguous pair, the API returns `409 ambiguous_pool_pair` and the SDK throws `AmbiguousPoolPairError`.
+
 ## Track swap status
 
 ### Await completion
@@ -62,10 +123,13 @@ The current SDK flow always returns swap output to the same Canton party that se
 const result = await swap.wait()
 ```
 
+`swap.wait()` resolves on `completed`. It throws typed errors for terminal failures, including `ExpiredError` when the intent expires or when polling observes a cancelled intent.
+
 ### Listen to events
 
 ```typescript
 swap.on('processing', () => console.log('Deposit detected'))
+swap.on('sending_output', () => console.log('Sending payout'))
 swap.on('completed', (s) => console.log(`Got ${s.actualOutput}`))
 swap.on('slippage_failed', () => console.log('Refunded: price moved'))
 swap.on('insufficient_amount', () => console.log('Refunded: below traffic cost'))
@@ -112,13 +176,23 @@ const quote = await client.quotes.get({
   from: 'Amulet',
   to: 'USDCx',
   amount: '100',
-  receiverParty: 'alice::12205a8c...'
+  receiverParty: 'alice::12205a8c...',
 })
 ```
 
 `quote.estimatedTrafficCost`, `quote.trafficFeeInInput`, and `quote.inputAmountAfterTrafficFee` help you account for Canton execution costs before the swap executes.
 
+- `inputTokenAdmin` and `outputTokenAdmin` identify the exact instruments that were priced.
 - `trafficFeeInInput` is the amount deducted from the input token as traffic-cost recovery.
 - `outputAmount` is quoted from `inputAmountAfterTrafficFee`, not from the gross deposit amount.
 - `receiverParty` lets the quote include the same destination-party traffic assumptions used by the live execution path.
 - The traffic fee is separate from the 2% swap fee and is not shared with LPs or SDK developers.
+
+## Wallet auth
+
+For browser-based SDK apps, keep the API key and wallet proof separate:
+
+- The API key identifies your app or developer account.
+- The wallet token identifies the end user who signed the OneSwap challenge.
+- `client.swaps.create(...)`, `client.swaps.getStatus(...)`, and `client.track(partyId)` require the wallet token.
+- If your app refreshes wallet auth in state, pass `walletToken` as a function so the SDK reads the current token on each request.

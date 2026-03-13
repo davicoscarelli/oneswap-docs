@@ -9,15 +9,21 @@ Every error thrown by the SDK is an instance of `OneSwapError`:
 
 ```typescript
 import {
-  AuthError,        // 401 — invalid or missing API key
+  ConflictError,    // 409 — active intent or other request conflict
+  AmbiguousPoolPairError, // 409 — token pair maps to multiple pools
+  AuthError,        // 401 — invalid or missing API key or wallet token
   ValidationError,  // 400 — bad parameters
   NotFoundError,    // 404 — pool/intent/party not found
   RateLimitError,   // 429 — too many requests
   SlippageError,    // swap output below minimum
+  InsufficientLiquidityError, // swap refunded because the pool was too thin
+  InsufficientAmountError, // swap refunded because input was below traffic cost
   OutputFailedError,// swap output transfer failed
   SwapFailedError,  // generic terminal swap failure
   RefundFailedError,// swap refund failed
   ExpiredError,     // intent expired before completion
+  NetworkError,     // transport-level failure before an HTTP response
+  TimeoutError,     // request timeout
   ServerError       // 500 — something went wrong on our end
 } from '@oneswap/sdk'
 ```
@@ -30,25 +36,28 @@ try {
   const result = await swap.wait()
 } catch (err) {
   if (err instanceof SlippageError) {
-    // Price moved too much, tokens refunded
     console.log('Swap refunded due to slippage')
+  } else if (err instanceof InsufficientLiquidityError) {
+    console.log('Swap refunded due to insufficient liquidity')
+  } else if (err instanceof InsufficientAmountError) {
+    console.log('Swap refunded because the input amount was too small')
   } else if (err instanceof OutputFailedError) {
-    // Output transfer failed or no output holdings were available
     console.log('Swap payout failed — inspect the terminal intent status')
   } else if (err instanceof RefundFailedError) {
-    // Refund path failed after a terminal swap error
     console.log('Swap refund failed — manual intervention is required')
   } else if (err instanceof SwapFailedError) {
-    // Generic terminal failure
     console.log('Swap failed — inspect the intent before retrying')
   } else if (err instanceof ExpiredError) {
-    // User didn't deposit in time
-    console.log('Intent expired — no deposit detected')
+    console.log('Swap expired or was cancelled before completion')
+  } else if (err instanceof AmbiguousPoolPairError) {
+    console.log(err.candidates)
+  } else if (err instanceof ConflictError) {
+    console.log(err.message)
   } else if (err instanceof AuthError) {
-    // Bad API key
-    console.log('Check your API key')
+    console.log('Check your API key and repeat wallet authentication if needed')
   } else if (err instanceof ValidationError) {
-    // Bad params (e.g. invalid token name, negative amount)
+    console.log(err.message)
+  } else if (err instanceof TimeoutError || err instanceof NetworkError) {
     console.log(err.message)
   }
 }
@@ -60,24 +69,32 @@ All errors have:
 
 ```typescript
 err.message    // human-readable description
-err.statusCode // HTTP status (0 for SlippageError/ExpiredError)
+err.statusCode // HTTP status (0 for lifecycle or transport errors)
 err.response   // raw response body from the API
 ```
+
+`AmbiguousPoolPairError` also exposes `err.candidates`, which lists the matching pools and token admins you can use to retry with `poolId`, `fromAdmin`, or `toAdmin`.
 
 ## Common scenarios
 
 | Error | When | What to do |
 |---|---|---|
-| `AuthError` | API key is wrong or missing | Check your key |
-| `ValidationError` | Bad params (missing field, invalid amount) | Fix the request |
+| `AmbiguousPoolPairError` | The same token symbols exist under multiple admins | Retry with `poolId` or both token admin fields |
+| `ConflictError` | Another active swap intent already exists for this wallet, pool, and input token | Reuse, cancel, or wait for the existing intent before creating another |
+| `AuthError` | API key is wrong, missing, or the wallet token is invalid/expired | Check your key and refresh wallet auth |
+| `ValidationError` | Bad params (missing field, invalid amount, token/pool mismatch) | Fix the request |
 | `NotFoundError` | Pool or intent doesn't exist | Check the ID |
 | `RateLimitError` | Too many requests | Back off and retry |
 | `SlippageError` | Price moved during swap | Retry with higher tolerance or try again |
+| `InsufficientLiquidityError` | The pool could not fill the swap | Retry later or reduce size |
+| `InsufficientAmountError` | A created swap was refunded because the live traffic cost exceeded the deposit | Increase the amount and create a new intent |
 | `OutputFailedError` | Output payout failed or the swap party had no output holdings | Inspect the terminal intent status before retrying |
 | `SwapFailedError` | The swap reached a generic terminal failure state | Investigate the intent before retrying |
 | `RefundFailedError` | The refund path failed after a swap error | Manual intervention is required |
-| `ValidationError` (400) | Input amount below traffic cost minimum | Increase the swap amount. The error response includes `minimumAmount`. |
-| `ExpiredError` | 30 min passed without deposit | Create a new intent |
+| `ValidationError` (400) | Quote or intent creation failed because the amount was below the estimated traffic cost | Increase the swap amount. The error response includes `minimumAmount`. |
+| `ExpiredError` | The swap intent expired after its current 24-hour deposit window, or `swap.wait()` observed a cancelled intent | Create a new intent if needed |
+| `TimeoutError` | The SDK request timed out before the API replied | Retry the request or increase `timeout` |
+| `NetworkError` | The request failed before an HTTP response was received | Retry after checking connectivity |
 | `ServerError` | Our problem | Retry after a moment |
 
 ## Configuring wait behavior

@@ -11,29 +11,64 @@ npm install @oneswap/sdk
 
 ## 2. Get your API key
 
-Sign up at [oneswap.cc](https://oneswap.cc) and grab an API key from your dashboard.
+Create your SDK API key from the wallet-authenticated OneSwap developer portal.
+
+- `os_live_...` keys identify your integration.
+- Authenticate your Canton wallet, call `POST /api/sdk/wallet-login`, then create keys on `POST /api/sdk/keys`.
+- Developer earnings, collections, and account analytics stay on the wallet-authenticated developer portal.
+- Legacy `POST /api/sdk/register` and `POST /api/sdk/login` are retired and return `410 Gone`.
 
 ## 3. Initialize
 
 ```typescript
 import { OneSwap } from '@oneswap/sdk'
 
-const client = new OneSwap({ apiKey: 'os_live_...' })
+const apiKey = 'os_live_...'
+const authClient = new OneSwap({ apiKey })
 ```
 
-## 4. Get a quote
+In SDK code, use `Amulet` when you mean `CC (Amulet)`.
+
+## 4. Verify the user's wallet
+
+Ask the user to sign the OneSwap challenge with the same wallet that will send the deposit.
+
+```typescript
+const partyId = 'alice::12205a8c...'
+
+const challenge = await authClient.walletAuth.requestChallenge(partyId)
+const signature = await wallet.signMessage(challenge.message)
+
+const verified = await authClient.walletAuth.verifyChallenge({
+  partyId,
+  nonce: challenge.nonce,
+  signature,
+  publicKey: wallet.publicKey,
+})
+
+const client = new OneSwap({
+  apiKey,
+  walletToken: verified.token,
+})
+```
+
+If your app stores and refreshes the wallet token in browser state, you can pass `walletToken` as a function instead of a fixed string.
+
+## 5. Get a quote
 
 ```typescript
 const quote = await client.quotes.get({
   from: 'Amulet',
   to: 'USDCx',
   amount: '100',
-  receiverParty: 'alice::12205a8c...'
+  receiverParty: partyId,
 })
 
 console.log(quote.outputAmount)
 console.log(quote.rate)
 console.log(quote.priceImpact)
+console.log(quote.inputTokenAdmin)
+console.log(quote.outputTokenAdmin)
 console.log(quote.estimatedTrafficCost?.cc)
 console.log(quote.trafficFeeInInput)
 console.log(quote.inputAmountAfterTrafficFee)
@@ -41,14 +76,16 @@ console.log(quote.inputAmountAfterTrafficFee)
 
 `quote.outputAmount` is already calculated from `quote.inputAmountAfterTrafficFee`. The traffic recovery is separate from the 2% swap fee.
 
-## 5. Create a swap intent
+If a token symbol exists under multiple admins, pass `poolId` or both token admin fields (`fromAdmin` and `toAdmin`) so OneSwap can resolve the exact pool pair.
+
+## 6. Create a swap intent
 
 ```typescript
 const swap = await client.swaps.create({
   fromToken: 'Amulet',
   toToken: 'USDCx',
   amount: '100',
-  walletAddress: 'alice::12205a8c...'
+  walletAddress: partyId,
 })
 
 console.log(swap.depositAddress) // pool swap party
@@ -56,11 +93,15 @@ console.log(swap.expectedOutput)
 console.log(swap.expiresAt)
 ```
 
-## 6. Send the deposit
+The `walletAddress` field is optional, but if you send it, it must match the authenticated wallet token.
 
-The user sends tokens from `alice::12205a8c...` directly to `swap.depositAddress`. Do not send from a different wallet or Canton party, or the swap will not complete.
+Swap intents currently remain valid for 24 hours. Use `swap.expiresAt` from the response rather than hard-coding the timeout.
 
-## 7. Wait for completion
+## 7. Send the deposit
+
+The user sends tokens from `partyId` directly to `swap.depositAddress`. Do not send from a different wallet or Canton party, or the swap will not complete.
+
+## 8. Wait for completion
 
 ```typescript
 swap.on('processing', () => console.log('Deposit detected'))
@@ -77,8 +118,8 @@ If slippage is exceeded, the swap is refunded automatically to the depositor par
   <Card title="Swaps Guide" icon="arrow-right-arrow-left" href="/guides/swaps">
     Slippage, status polling, and failure states
   </Card>
-  <Card title="Error Handling" icon="triangle-exclamation" href="/guides/error-handling">
-    Handle failures gracefully
+  <Card title="Wallet Guide" icon="wallet" href="/guides/wallets">
+    Connect a wallet and manage wallet tokens
   </Card>
   <Card title="SDK Methods" icon="code" href="/reference/sdk-methods">
     Review the swaps-focused SDK surface

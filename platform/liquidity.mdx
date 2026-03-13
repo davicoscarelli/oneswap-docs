@@ -11,7 +11,7 @@ Liquidity providers (LPs) deposit token pairs into pools and earn a share of eve
 
 <Steps>
   <Step title="Select a Pool">
-    Choose which token pair you want to provide liquidity for (e.g., CC/USDCx). You can see current reserves, fee earnings, and APR for each pool.
+    Choose which token pair you want to provide liquidity for (for example `CC (Amulet)` / `USDCx`). You can see current reserves, fee earnings, and APR for each pool.
   </Step>
   <Step title="Enter Deposit Amounts">
     Specify how much of the first token you want to deposit. The required amount of the second token is calculated automatically based on the current pool ratio.
@@ -20,7 +20,7 @@ Liquidity providers (LPs) deposit token pairs into pools and earn a share of eve
     Confirm your deposit. OneSwap returns the pool LP party as the deposit address.
   </Step>
   <Step title="Send Both Tokens">
-    Transfer both token amounts from the same party to the LP address. You have **30 minutes** to complete both deposits.
+    Transfer both token amounts from the same party to the LP address. You currently have **24 hours** to complete both deposits.
   </Step>
   <Step title="Receive LP Position">
     Once both deposits are detected, OneSwap credits your LP balance in the database based on your proportional share of the pool.
@@ -42,17 +42,17 @@ Reserve displays, TVL, and current LP value use effective reserves. Pending plat
 
 | | Your Deposit | Pool Total | Your Share |
 |---|---|---|---|
-| CC | 100 | 10,000 | 1% |
+| CC (Amulet) | 100 | 10,000 | 1% |
 | USDCx | 50 | 5,000 | 1% |
 | LP Balance | 100 | 10,000 | 1% |
 
-After 1,000 swaps generating fees, your 1% share now represents more CC and USDCx than you originally deposited.
+After 1,000 swaps generating fees, your 1% share now represents more `CC (Amulet)` and `USDCx` than you originally deposited.
 
 ## Deposit Requirements
 
 - **Both tokens required** — You must deposit both tokens in the pair
 - **Ratio must match** — Deposits must match the current pool ratio (the app calculates this for you)
-- **30-minute window** — Both deposits must arrive within 30 minutes
+- **24-hour window** — Both deposits must arrive before the current LP intent deadline
 - **Incomplete deposits are refunded** — If only one token arrives before timeout, it's returned to you
 - **Same sender required** — Both deposits must come from the same Canton party that created the LP intent
 - **One-sided pools are blocked** — Existing pools with a zero reserve on one side reject new liquidity until they are reset
@@ -79,7 +79,7 @@ pending → partial (one token received) → processing (both received) → comp
                                         → failed (manual investigation needed)
                                         → cancelled
                                         → expired (second token didn't arrive in time)
-        → expired (no deposits in 30 min)
+        → expired (no deposits before the current 24-hour deadline)
 ```
 
 | Status | Meaning |

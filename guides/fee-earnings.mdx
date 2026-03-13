@@ -1,6 +1,6 @@
 ---
 title: Fee Earnings
-description: Track SDK developer fee earnings and direct-payout collections.
+description: Review SDK developer fee earnings and direct-payout collections.
 ---
 
 OneSwap shares a portion of platform swap fees with SDK developers. Once your account is enabled for fee sharing, fees accumulate automatically on every swap made through your API keys.
@@ -12,48 +12,18 @@ OneSwap shares a portion of platform swap fees with SDK developers. Once your ac
 3. Your configured share is credited to your developer account in the database
 4. When you collect earnings, payout is sent directly to the destination party you specify in the developer portal or admin tooling
 
-## Check your earnings
-
-```typescript
-const earnings = await client.fees.getEarnings()
-
-console.log(earnings.feeSharePct)
-console.log(earnings.payoutMode)     // 'direct'
-console.log(earnings.accumulated)
-console.log(earnings.totalCollected)
-```
-
-`feeWallet` is `null` in direct mode. There is no permanent custodial fee wallet anymore.
-
-## View fee event history
-
-```typescript
-const history = await client.fees.getEarningsHistory({
-  page: 1,
-  limit: 20,
-  token: 'CC',
-})
-```
-
-## View collection history
-
-```typescript
-const collections = await client.fees.getCollections({ page: 1, limit: 20 })
-
-for (const col of collections.collections) {
-  console.log(`${col.amount} ${col.tokenName} sent to ${col.destinationParty ?? 'destination'} at ${col.collectedAt}`)
-}
-```
-
 ## Developer portal
 
-Use the developer portal to review accumulated fees and initiate collections. Each collection asks for a destination Canton party and transfers directly there.
+Use the wallet-authenticated developer portal to review accumulated fees, inspect recent fee events, and initiate collections. Each collection asks for a destination Canton party and transfers directly there.
+
+The public SDK does not expose developer earnings or collection APIs. Those are account-level views and stay on the wallet-authenticated OneSwap developer portal.
 
 <Warning>
 Collection history is strongest for `CC (Amulet)` payouts. Utility-token payouts such as `USDCx` can use a `TransferOffer` flow under the hood. In those cases, a completed collection record proves that OneSwap submitted the collection transfer and received a ledger update ID, but it does not independently re-read an external destination wallet balance before marking the collection complete.
 </Warning>
 
-If you collect utility tokens to an external Canton party, verify both:
+Detailed collection-history records are currently available through the backend/admin collection APIs rather than a dedicated website history view.
 
-- the collection record in the developer portal
+If you collect utility tokens to an external Canton party, verify:
+
 - the destination wallet or pending-offer state

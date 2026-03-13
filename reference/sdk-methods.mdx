@@ -12,8 +12,13 @@ const client = new OneSwap({ apiKey: 'os_live_...' })
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `apiKey` | `string` | required | Your API key |
+| `apiKey` | `string` | required | Your OneSwap SDK API key (`os_live_...`). |
+| `walletToken` | `string \| (() => string \| Promise<string \| undefined> \| undefined)` | none | Optional end-user wallet token, or a lazy getter, for wallet-authenticated SDK calls. |
 | `timeout` | `number` | `30000` | Request timeout in ms |
+
+Create `apiKey` values through the wallet-authenticated OneSwap developer portal. Authenticate your wallet on `POST /api/sdk/wallet-login`, then create or rotate keys on `POST /api/sdk/keys`.
+
+In SDK params and responses, use `Amulet` when you mean `CC (Amulet)`.
 
 ## Pools
 
@@ -33,16 +38,24 @@ const client = new OneSwap({ apiKey: 'os_live_...' })
 
 | Method | Description |
 |---|---|
-| `client.quotes.get({ from, to, amount, receiverParty? })` | Price quote. Includes `estimatedTrafficCost`, `trafficFeeInInput`, and `inputAmountAfterTrafficFee`. `outputAmount` is based on the net input after traffic recovery. |
+| `client.quotes.get({ from, to, amount, receiverParty?, poolId?, fromAdmin?, toAdmin? })` | Price quote. Includes `estimatedTrafficCost`, `trafficFeeInInput`, and `inputAmountAfterTrafficFee`. `outputAmount` is based on the net input after traffic recovery. When token symbols are reused across issuers, pass `poolId` or both admin fields to disambiguate the pool pair. |
+
+Quotes also return `inputTokenAdmin` and `outputTokenAdmin` so you can keep working with the exact instrument identity that was priced.
 
 ## Swaps
 
 | Method | Description |
 |---|---|
-| `client.swaps.create(params)` | Create swap intent |
-| `client.swaps.getStatus(intentId)` | Poll swap status |
-| `client.swaps.list(params?)` | List swaps |
-| `client.swaps.cancel(intentId)` | Cancel a pending swap intent |
+| `client.swaps.create(params)` | Create a wallet-authenticated swap intent |
+| `client.swaps.getStatus(intentId)` | Poll swap status for the authenticated wallet party |
+| `client.swaps.cancel(intentId)` | Cancel a pending swap intent for the authenticated wallet party |
+
+## Wallet auth
+
+| Method | Description |
+|---|---|
+| `client.walletAuth.requestChallenge(partyId)` | Create a signable OneSwap wallet-auth challenge |
+| `client.walletAuth.verifyChallenge(params)` | Verify the signed challenge and return a wallet token |
 
 ### `swaps.create` params
 
@@ -52,17 +65,22 @@ const client = new OneSwap({ apiKey: 'os_live_...' })
 | `toToken` | yes | Output token |
 | `amount` | yes | Input amount |
 | `slippageTolerance` | no | `0.001`–`0.5`, default `0.01` |
-| `walletAddress` | yes | User's actual Canton party ID |
+| `walletAddress` | no | Optional sender `party ID` for UI clarity. If present, it must match the authenticated wallet token. |
+| `poolId` | no | Preferred disambiguator when the token pair can map to more than one pool. |
+| `fromAdmin` | no | Exact admin for the input token when token symbols are reused. |
+| `toAdmin` | no | Exact admin for the output token when token symbols are reused. |
 | `outputAddress` | no | Deprecated. Ignored by the SDK client because the current execution flow always pays back to the depositor party. |
 
 ### SwapIntent object
 
-Properties: `intentId`, `depositAddress`, `expectedOutput`, `minOutput`, `expiresAt`, `instructions`.
+Properties: `intentId`, `poolId`, `depositAddress`, `swapAddress`, `inputToken`, `inputTokenAdmin`, `outputToken`, `outputTokenAdmin`, `expectedAmount`, `expectedOutput`, `minOutput`, `slippageTolerance`, `outputAddress`, `expiresAt`, `instructions`.
 
 Notes:
 - `depositAddress` is the pool swap party, not the user's own party.
-- The deposit must be sent from the same `walletAddress` used to create the swap intent.
+- `client.swaps.create(...)` requires both a valid API key and a wallet-authenticated end-user token.
+- The deposit must be sent from the same signed-in wallet party used to create the swap intent.
 - A different wallet or Canton party will not complete the swap intent.
+- Current backend swap intents give you a 24-hour deposit window. Use `expiresAt` from the response instead of hard-coding the timeout.
 - `outputAddress` in the response is the resolved destination party. In the current flow it matches the depositor party.
 
 | Method / Event | Description |
@@ -73,6 +91,7 @@ Notes:
 | `'deposit_received'` | The input deposit has been attributed to the swap |
 | `'forwarded'` | The swap has moved past deposit handling and into settlement |
 | `'processing'` | Deposit detected, swap executing |
+| `'sending_output'` | OneSwap is sending output back to the depositor party |
 | `'completed'` | Swap done |
 | `'slippage_failed'` | Refunded because price moved |
 | `'insufficient_amount'` | Refunded because input is below traffic cost |
@@ -84,22 +103,10 @@ Notes:
 | `'expired'` | Timed out |
 | `'cancelled'` | Intent was cancelled before execution started |
 
-## History
-
-| Method | Description |
-|---|---|
-| `client.history.list(params?)` | Swap history for your developer account |
-
 ## Track
 
 | Method | Description |
 |---|---|
-| `client.track(partyId)` | Swaps for a Canton party that has already created swap intents through your API key |
+| `client.track(partyId)` | Swaps for the wallet-authenticated Canton party under your API key. The `partyId` must match the authenticated wallet token. |
 
-## Fee earnings
-
-| Method | Description |
-|---|---|
-| `client.fees.getEarnings()` | Fee share config, payout mode, accumulated fees, total collected |
-| `client.fees.getEarningsHistory(params?)` | Paginated fee events |
-| `client.fees.getCollections(params?)` | Paginated fee collection history |
+Developer earnings, collections, and account analytics are available in the wallet-authenticated OneSwap developer portal, not through the public SDK API.

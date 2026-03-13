@@ -17,10 +17,10 @@ OneSwap lets you exchange one token for another using automated liquidity pools.
     Confirm the swap details and set your slippage tolerance. You receive a unique deposit address.
   </Step>
   <Step title="Send Your Tokens">
-    Transfer the input tokens to the deposit address from your wallet. You have **30 minutes** to complete the deposit.
+    Transfer the input tokens to the deposit address from the same connected wallet party. You currently have **24 hours** to complete the deposit.
   </Step>
   <Step title="Receive Output Tokens">
-    OneSwap detects your deposit, executes the swap, and sends the output tokens back to the same wallet you sent from. No extra steps required.
+    OneSwap detects your deposit, executes the swap, and sends the output tokens back to the same wallet party you sent from. No extra steps required.
   </Step>
 </Steps>
 
@@ -69,28 +69,30 @@ For example, with 1% slippage on a swap expecting 100 USDCx output, the swap exe
 Every swap goes through a status lifecycle:
 
 ```
-pending → processing → sending_output → completed
+pending → matched → deposit_received → forwarded → processing → sending_output → completed
 ```
 
-**Failure states** (tokens are always refunded):
+Common terminal failure states:
 
 | Status | What Happened |
 |--------|---------------|
-| `expired` | No deposit received within 30 minutes |
+| `expired` | No deposit was received before the current 24-hour intent deadline |
+| `cancelled` | The intent was cancelled before execution started |
 | `slippage_failed` | Price moved beyond your tolerance |
-| `insufficient_amount` | Deposit was below the minimum (traffic fee) |
+| `insufficient_amount` | Deposit was below the minimum needed to cover traffic cost |
 | `insufficient_liquidity` | Pool didn't have enough reserves |
 | `output_failed` | Output transfer failed after execution; the input refund succeeded |
 | `no_output_holdings` | The swap party had no output holdings available for payout |
+| `failed` | The swap reached a generic terminal failure state |
 | `refund_failed` | A refund attempt failed and needs manual intervention |
 
 <Info>
-Most quote and liquidity failures are refunded automatically. Rare operational states such as `no_output_holdings` or `refund_failed` require manual investigation by OneSwap.
+Most validation and pricing failures are refunded automatically. Rare operational states such as `no_output_holdings`, `failed`, or `refund_failed` require manual investigation by OneSwap.
 </Info>
 
 ## Tips
 
 - **Check price impact** before large swaps. High impact means you're moving the price significantly.
 - **Use reasonable slippage** — 1% works for most swaps. Only increase for volatile markets.
-- **Quotes expire in 30 seconds** — refresh if your quote is stale.
-- **One wallet, one swap** — output tokens are sent to the same address you send from.
+- **Check the intent deadline** — swap intents currently stay open for 24 hours, and the UI shows the exact `expiresAt`.
+- **Use the same connected wallet party** — deposits from a different party will not complete the swap.
