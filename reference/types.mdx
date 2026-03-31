@@ -205,7 +205,7 @@ interface CancelSwapResponse {
 
 `outputAddress` is deprecated in `CreateSwapParams`. Current OneSwap execution resolves swap output back to the same party that made the deposit.
 
-`depositReference` is part of the live swap flow. Include it in the Canton reason/reference field when sending the deposit to the pool party.
+`depositReference` is recommended when your wallet flow supports Canton reason/reference metadata. Standard 1-step sender attribution does not depend on it.
 
 ## Wallet auth
 

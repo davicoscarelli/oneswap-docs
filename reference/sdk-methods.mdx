@@ -77,7 +77,7 @@ Properties: `intentId`, `poolId`, `depositAddress`, `swapAddress`, `depositRefer
 
 Notes:
 - `depositAddress` is the pool swap party, not the user's own party.
-- `depositReference` must be included in the Canton reason/reference field when the deposit is sent.
+- `depositReference` is recommended when your wallet flow supports Canton reason/reference metadata. Sender attribution does not depend on it for standard 1-step transfers.
 - `client.swaps.create(...)` requires both a valid API key and a wallet-authenticated end-user token.
 - The deposit must be sent from the same signed-in wallet party used to create the swap intent.
 - A different wallet or Canton party will not complete the swap intent.
@@ -95,6 +95,7 @@ Notes:
 | `'sending_output'` | OneSwap is sending output back to the depositor party |
 | `'completed'` | Swap done |
 | `'slippage_failed'` | Refunded because price moved |
+| `'price_impact_exceeded'` | Refunded because price impact exceeded the server cap |
 | `'insufficient_amount'` | Refunded because input is below traffic cost |
 | `'insufficient_liquidity'` | Refunded because pool liquidity is insufficient |
 | `'output_failed'` | Output transfer failed and the input refund succeeded |

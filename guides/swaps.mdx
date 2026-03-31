@@ -40,7 +40,7 @@ This returns a `SwapIntent` with everything you need:
 |---|---|
 | `depositAddress` | Pool swap party that should receive the deposit |
 | `swapAddress` | The same pool swap party, returned explicitly for clarity |
-| `depositReference` | Transfer reference to include in the Canton reason/reference field |
+| `depositReference` | Transfer reference to pass through when the wallet supports Canton reason/reference metadata |
 | `expectedOutput` | Estimated output amount |
 | `minOutput` | Minimum accepted after slippage |
 | `outputAddress` | Resolved destination party for the payout |
@@ -58,7 +58,7 @@ Swap intents currently remain valid for 24 hours. Use `swap.expiresAt` from the 
 3. Verify the signature and store the returned wallet token
 4. Create the intent with `client.swaps.create(...)`
 5. OneSwap returns the pool swap party as `depositAddress` plus a `depositReference`
-6. The user sends the input token directly from that same party to `depositAddress` and includes the reference in the Canton reason/reference field
+6. The user sends the input token directly from that same party to `depositAddress` and passes through the reference when the wallet supports Canton reason/reference metadata
 7. OneSwap detects the deposit and executes the swap
 8. Output returns directly to the same party that made the deposit
 
@@ -82,13 +82,13 @@ If the actual output falls below `minOutput`, the swap is refunded.
 
 ## Maximum price impact
 
-OneSwap enforces a server-side price impact cap (currently 15%). If a swap would move the pool price beyond this limit, the quote endpoint returns a `400` error and any deposited funds are refunded automatically with status `price_impact_exceeded`. The cap is returned in `quote.maxPriceImpact`. To execute large swaps, either split them into smaller amounts or add liquidity to the pool first.
+OneSwap enforces a server-side price impact cap (currently 15%). If a quote or swap-intent creation request would move the pool price beyond this limit, the API returns `400` and the SDK surfaces that as `ValidationError`. If an already-created intent later crosses the same cap during execution, it reaches terminal status `price_impact_exceeded` and `swap.wait()` throws `PriceImpactError`. The cap is returned in `quote.maxPriceImpact`. To execute large swaps, either split them into smaller amounts or add liquidity to the pool first.
 
 ## Output routing
 
 The current SDK flow always returns swap output to the same Canton party that sends the deposit. `outputAddress` remains in the type surface for backward compatibility, but the SDK ignores it and `/api/v1/swaps` resolves output back to the depositor party.
 
-`depositReference` is part of the live swap contract. Treat it as required operational data and pass it through to the wallet UX that sends the Canton transfer.
+`depositReference` is recommended operational metadata. Pass it through to the wallet UX when the wallet supports Canton reason/reference fields so fallback matching and observability stay stronger.
 
 ## Disambiguating duplicate symbols
 
