@@ -73,7 +73,7 @@ That keeps the flow direct-party and non-custodial without trusting a raw `party
 
 Current swap intents remain valid for 24 hours. Respect the returned `expiresAt` instead of assuming a shorter window.
 
-Create your `os_live_...` API key in the wallet-authenticated OneSwap developer portal. Legacy `POST /api/sdk/register` and `POST /api/sdk/login` are retired and return `410 Gone`.
+Create your `os_live_...` API key in the wallet-authenticated OneSwap developer portal. SDK developer auth and SDK swap flows do not use site-access tokens or access codes. Legacy `POST /api/sdk/register` and `POST /api/sdk/login` are retired and return `410 Gone`.
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="bolt" href="/quickstart">

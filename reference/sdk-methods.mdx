@@ -16,7 +16,7 @@ const client = new OneSwap({ apiKey: 'os_live_...' })
 | `walletToken` | `string \| (() => string \| Promise<string \| undefined> \| undefined)` | none | Optional end-user wallet token, or a lazy getter, for wallet-authenticated SDK calls. |
 | `timeout` | `number` | `30000` | Request timeout in ms |
 
-Create `apiKey` values through the wallet-authenticated OneSwap developer portal. Authenticate your wallet on `POST /api/sdk/wallet-login`, then create or rotate keys on `POST /api/sdk/keys`.
+Create `apiKey` values through the wallet-authenticated OneSwap developer portal. Authenticate your wallet on `POST /api/sdk/wallet-login`, then create or rotate keys on `POST /api/sdk/keys`. SDK developer auth and SDK swap flows do not use site-access tokens or access codes.
 
 In SDK params and responses, use `Amulet` when you mean `CC (Amulet)`.
 
