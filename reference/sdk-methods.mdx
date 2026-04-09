@@ -27,7 +27,10 @@ const devnetClient = new OneSwap({
 
 Create `apiKey` values through the wallet-authenticated OneSwap developer portal. Authenticate your wallet on `POST /api/sdk/wallet-login`, then create or rotate keys on `POST /api/sdk/keys`. SDK developer auth and SDK swap flows do not use site-access tokens or access codes.
 
-For devnet keys, use `https://devnet.oneswap.cc/developer/keys`.
+Portal entry points:
+
+- Mainnet SDK keys: `https://oneswap.cc/developer/keys`
+- Devnet SDK keys: `https://devnet.oneswap.cc/developer/keys`
 
 In SDK params and responses, use `Amulet` when you mean `CC (Amulet)`.
 

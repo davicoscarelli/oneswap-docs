@@ -75,10 +75,12 @@ Current swap intents remain valid for 24 hours. Respect the returned `expiresAt`
 
 Create your `os_live_...` API key in the wallet-authenticated OneSwap developer portal. SDK developer auth and SDK swap flows do not use site-access tokens or access codes. Legacy `POST /api/sdk/register` and `POST /api/sdk/login` are retired and return `410 Gone`.
 
-For devnet integrations:
+Developer portal entry points:
 
-- create the SDK key from `https://devnet.oneswap.cc/developer/keys`
-- initialize the SDK with `environment: 'devnet'`
+- mainnet: `https://oneswap.cc/developer/keys`
+- devnet: `https://devnet.oneswap.cc/developer/keys`
+
+For devnet integrations, initialize the SDK with `environment: 'devnet'`.
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="bolt" href="/quickstart">
