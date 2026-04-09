@@ -15,6 +15,7 @@ Create your SDK API key from the wallet-authenticated OneSwap developer portal.
 
 - `os_live_...` keys identify your integration.
 - Authenticate your Canton wallet, call `POST /api/sdk/wallet-login`, then create keys on `POST /api/sdk/keys`.
+- For devnet, create the key from `https://devnet.oneswap.cc/developer/keys`.
 - SDK developer auth and SDK swap flows do not use site-access tokens or access codes.
 - Developer earnings, collections, and account analytics stay on the wallet-authenticated developer portal.
 - Legacy `POST /api/sdk/register` and `POST /api/sdk/login` are retired and return `410 Gone`.
@@ -29,6 +30,17 @@ const authClient = new OneSwap({ apiKey })
 ```
 
 In SDK code, use `Amulet` when you mean `CC (Amulet)`.
+
+To target devnet:
+
+```typescript
+const authClient = new OneSwap({
+  apiKey,
+  environment: 'devnet',
+})
+```
+
+That resolves to `https://devnet.api.oneswap.cc` by default.
 
 ## 4. Verify the user's wallet
 
