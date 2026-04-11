@@ -11,7 +11,7 @@ OneSwap lets you exchange one token for another using automated liquidity pools.
 
 <Steps>
   <Step title="Get a Quote">
-    Choose your input token and amount. OneSwap calculates the expected output using the constant product formula, accounting for fees and price impact.
+    Choose your input token and swap amount. OneSwap calculates the expected output using the constant product formula, then shows the separate network fee and the final total deposit amount.
   </Step>
   <Step title="Create a Swap Intent">
     Confirm the swap details and set your slippage tolerance. You receive the pool swap party plus a unique transfer reference.
@@ -48,9 +48,17 @@ Every swap incurs a **0.1% fee** taken from the input amount. This fee is split 
 |-----|--------|---------|
 | LP fee | 0.075% | Liquidity providers |
 | Platform fee | 0.025% | OneSwap (0.0125% platform + 0.0125% developer for SDK swaps) |
-| Traffic fee | Variable | OneSwap treasury recovery for Canton execution costs |
+| Network fee | Variable | OneSwap treasury recovery for Canton execution costs |
 
-The **traffic fee** is a small Canton execution-cost recovery charge that varies based on transaction size. It's deducted from your input before the swap, recorded as a `traffic` fee event, accumulated with platform fees, and later collected from the pool's swap party to treasury. The quote endpoint shows this as `estimatedTrafficCost`, `trafficFeeInInput`, and `inputAmountAfterTrafficFee` so you know the exact net input upfront. `outputAmount` is calculated from that net input after traffic recovery.
+The **network fee** is a small Canton execution-cost recovery charge that varies based on transaction size. OneSwap shows it separately and adds it on top of your chosen swap amount to produce the final **total deposit**. The API exposes this as `networkFeeAmount` and `totalInputAmount`, and keeps `trafficFeeInInput` as a compatibility alias. `outputAmount` is calculated from `inputAmountAfterPoolFee`, which is the swap amount after deducting the 0.1% swap fee. Internally, the recovered network cost is still recorded as a `traffic` fee event and later collected from the pool's swap party to treasury.
+
+Example for a `100 CC` swap:
+
+- Swap amount: `100 CC`
+- Swap fee at `0.1%`: `0.1 CC`
+- Amount priced into the pool: `99.9 CC`
+- Estimated network fee: shown separately
+- Total deposit: `100 CC + network fee`
 
 Displayed reserves and TVL exclude pending platform, developer, and traffic-fee collections so swap pricing and LP values are based on effective pool liquidity rather than treasury-owned balances waiting to be swept.
 
@@ -80,7 +88,7 @@ Common terminal failure states:
 | `cancelled` | The intent was cancelled before execution started |
 | `slippage_failed` | Price moved beyond your tolerance |
 | `price_impact_exceeded` | Swap would move the pool price beyond the maximum allowed (currently 15%) |
-| `insufficient_amount` | Deposit was below the minimum needed to cover traffic cost |
+| `insufficient_amount` | Deposit was below the minimum needed to cover network cost |
 | `insufficient_liquidity` | Pool didn't have enough reserves |
 | `output_failed` | Output transfer failed after execution; the input refund succeeded |
 | `no_output_holdings` | The swap party had no output holdings available for payout |

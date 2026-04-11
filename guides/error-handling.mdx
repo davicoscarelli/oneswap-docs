@@ -18,7 +18,7 @@ import {
   SlippageError,    // swap output below minimum
   PriceImpactError, // created swap later hit price_impact_exceeded during wait()
   InsufficientLiquidityError, // swap refunded because the pool was too thin
-  InsufficientAmountError, // swap refunded because input was below traffic cost
+  InsufficientAmountError, // swap refunded because the deposit was below required network cost
   OutputFailedError,// swap output transfer failed
   SwapFailedError,  // generic terminal swap failure
   RefundFailedError,// swap refund failed
@@ -93,12 +93,12 @@ err.response   // raw response body from the API
 | `SlippageError` | Price moved during swap | Retry with higher tolerance or try again |
 | `PriceImpactError` | An already-created swap later reached terminal status `price_impact_exceeded` during execution | Reduce swap size or add liquidity to the pool before retrying |
 | `InsufficientLiquidityError` | The pool could not fill the swap | Retry later or reduce size |
-| `InsufficientAmountError` | A created swap was refunded because the live traffic cost exceeded the deposit | Increase the amount and create a new intent |
+| `InsufficientAmountError` | A created swap was refunded because the live network cost exceeded the deposit | Increase the amount and create a new intent |
 | `OutputFailedError` | Output payout failed or the swap party had no output holdings | Inspect the terminal intent status before retrying |
 | `SwapFailedError` | The swap reached a generic terminal failure state | Investigate the intent before retrying |
 | `RefundFailedError` | The refund path failed after a swap error | Manual intervention is required |
 | `ValidationError` (400) | Quote or intent creation failed because price impact already exceeded the server cap | Reduce swap size or add liquidity before retrying |
-| `ValidationError` (400) | Quote or intent creation failed because the amount was below the estimated traffic cost | Increase the swap amount. The error response includes `minimumAmount`. |
+| `ValidationError` (400) | Quote or intent creation failed because the amount was below the estimated network cost | Increase the swap amount. The error response includes `minimumAmount`. |
 | `ExpiredError` | The swap intent expired after its current 24-hour deposit window, or `swap.wait()` observed a cancelled intent | Create a new intent if needed |
 | `TimeoutError` | The SDK request timed out before the API replied | Retry the request or increase `timeout` |
 | `NetworkError` | The request failed before an HTTP response was received | Retry after checking connectivity |

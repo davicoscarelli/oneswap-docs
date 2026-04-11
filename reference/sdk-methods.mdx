@@ -52,7 +52,7 @@ In SDK params and responses, use `Amulet` when you mean `CC (Amulet)`.
 
 | Method | Description |
 |---|---|
-| `client.quotes.get({ from, to, amount, receiverParty?, poolId?, fromAdmin?, toAdmin? })` | Price quote. Includes `estimatedTrafficCost`, `trafficFeeInInput`, and `inputAmountAfterTrafficFee`. `outputAmount` is based on the net input after traffic recovery. When token symbols are reused across issuers, pass `poolId` or both admin fields to disambiguate the pool pair. |
+| `client.quotes.get({ from, to, amount, receiverParty?, poolId?, fromAdmin?, toAdmin? })` | Price quote. `amount` is the swap amount you want priced into the pool. The response includes `inputAmountAfterPoolFee`, `networkFeeAmount`, and `totalInputAmount`. `outputAmount` is based on `inputAmountAfterPoolFee`, and `totalInputAmount` is the exact deposit amount to send after adding the estimated network fee. `trafficFeeInInput` remains as a compatibility alias for `networkFeeAmount`. When token symbols are reused across issuers, pass `poolId` or both admin fields to disambiguate the pool pair. |
 
 Quotes also return `inputTokenAdmin` and `outputTokenAdmin` so you can keep working with the exact instrument identity that was priced.
 
@@ -77,7 +77,7 @@ Quotes also return `inputTokenAdmin` and `outputTokenAdmin` so you can keep work
 |---|---|---|
 | `fromToken` | yes | Input token |
 | `toToken` | yes | Output token |
-| `amount` | yes | Input amount |
+| `amount` | yes | Swap amount to price into the pool. The returned intent tells you the larger total deposit amount after adding the estimated network fee. |
 | `slippageTolerance` | no | `0.001`–`0.5`, default `0.01` |
 | `walletAddress` | no | Optional sender `party ID` for UI clarity. If present, it must match the authenticated wallet token. |
 | `poolId` | no | Preferred disambiguator when the token pair can map to more than one pool. |
@@ -87,10 +87,14 @@ Quotes also return `inputTokenAdmin` and `outputTokenAdmin` so you can keep work
 
 ### SwapIntent object
 
-Properties: `intentId`, `poolId`, `depositAddress`, `swapAddress`, `depositReference`, `inputToken`, `inputTokenAdmin`, `outputToken`, `outputTokenAdmin`, `expectedAmount`, `expectedOutput`, `minOutput`, `slippageTolerance`, `outputAddress`, `expiresAt`, `instructions`.
+Properties: `intentId`, `poolId`, `depositAddress`, `swapAddress`, `depositReference`, `inputToken`, `inputTokenAdmin`, `outputToken`, `outputTokenAdmin`, `expectedAmount`, `quotedSwapAmount`, `totalInputAmount`, `poolFeeAmount`, `lpFeeAmount`, `platformFeeAmount`, `inputAmountAfterPoolFee`, `networkFeeAmount`, `trafficFeeInInput`, `expectedOutput`, `minOutput`, `slippageTolerance`, `outputAddress`, `expiresAt`, `instructions`.
 
 Notes:
 - `depositAddress` is the pool swap party, not the user's own party.
+- `expectedAmount` is the final deposit amount to send. `totalInputAmount` returns the same value explicitly.
+- `quotedSwapAmount` is the swap amount you entered before fees.
+- `poolFeeAmount` is the 0.1% swap fee taken from `quotedSwapAmount` before pricing.
+- `networkFeeAmount` is the estimated network fee added on top of the swap amount to reach the final deposit. `trafficFeeInInput` remains as a compatibility alias.
 - `depositReference` is recommended when your wallet flow supports Canton reason/reference metadata. Sender attribution does not depend on it for standard 1-step transfers.
 - `client.swaps.create(...)` requires both a valid API key and a wallet-authenticated end-user token.
 - The deposit must be sent from the same signed-in wallet party used to create the swap intent.
@@ -110,7 +114,7 @@ Notes:
 | `'completed'` | Swap done |
 | `'slippage_failed'` | Refunded because price moved |
 | `'price_impact_exceeded'` | Refunded because price impact exceeded the server cap |
-| `'insufficient_amount'` | Refunded because input is below traffic cost |
+| `'insufficient_amount'` | Refunded because the deposit was too small to cover the required network cost |
 | `'insufficient_liquidity'` | Refunded because pool liquidity is insufficient |
 | `'output_failed'` | Output transfer failed and the input refund succeeded |
 | `'no_output_holdings'` | No output inventory was available on the swap party |

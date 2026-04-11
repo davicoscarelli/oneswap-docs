@@ -34,7 +34,7 @@ This means developers earn revenue simply by integrating OneSwap into their apps
 
 ```
 User swaps 1,000 CC
-  ├── Traffic fee → OneSwap treasury recovery (variable, small)
+  ├── Network fee → OneSwap treasury recovery (variable, small)
   ├── 0.75 CC (0.075%) → Liquidity Providers
   ├── 0.25 CC (0.025%) → OneSwap Platform
   └── Remainder → Swap calculation → Output tokens to user
@@ -44,16 +44,16 @@ User swaps 1,000 CC
 
 ```
 User swaps 1,000 CC
-  ├── Traffic fee → OneSwap treasury recovery (variable, small)
+  ├── Network fee → OneSwap treasury recovery (variable, small)
   ├── 0.75 CC (0.075%) → Liquidity Providers
   ├── 0.125 CC (0.0125%) → OneSwap Platform
   ├── 0.125 CC (0.0125%) → SDK Developer
   └── Remainder → Swap calculation → Output tokens to user
 ```
 
-### Traffic Fee — Variable
+### Network fee — variable
 
-OneSwap also charges a small variable traffic-fee recovery amount per swap to offset Canton execution costs borne by pool parties. This is separate from the 0.1% swap fee, is shown in the swap quote, recorded as a `traffic` fee event, and later collected to treasury with the rest of the platform fee accumulator.
+OneSwap also charges a small variable network-fee recovery amount per swap to offset Canton execution costs borne by pool parties. This is separate from the 0.1% swap fee, is shown in the quote as `networkFeeAmount` and `totalInputAmount`, recorded internally as a `traffic` fee event, and later collected to treasury with the rest of the platform fee accumulator. `trafficFeeInInput` remains available as a compatibility alias.
 
 Treasury collection is manual, not automatic.
 
@@ -173,7 +173,7 @@ No upfront cost. No minimum volume. You earn from the first swap.
 | Platform Fee | 0.025% | OneSwap | Direct swaps |
 | Platform Fee (SDK) | 0.0125% | OneSwap | SDK swaps |
 | Developer Fee | 0.0125% | SDK Developer | SDK swaps |
-| Traffic Fee | Variable | OneSwap treasury recovery | All swaps |
+| Network Fee | Variable | OneSwap treasury recovery | All swaps |
 
 ## Featured App Rewards
 

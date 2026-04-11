@@ -81,12 +81,13 @@ console.log(quote.rate)
 console.log(quote.priceImpact)
 console.log(quote.inputTokenAdmin)
 console.log(quote.outputTokenAdmin)
+console.log(quote.totalInputAmount)
+console.log(quote.networkFeeAmount)
+console.log(quote.inputAmountAfterPoolFee)
 console.log(quote.estimatedTrafficCost?.cc)
-console.log(quote.trafficFeeInInput)
-console.log(quote.inputAmountAfterTrafficFee)
 ```
 
-`quote.outputAmount` is already calculated from `quote.inputAmountAfterTrafficFee`. The traffic recovery is separate from the 0.1% swap fee.
+`amount` is the swap amount you want executed into the pool. `quote.outputAmount` is calculated from `quote.inputAmountAfterPoolFee`, which is the swap amount after deducting the 0.1% swap fee. OneSwap then adds `quote.networkFeeAmount` on top to produce `quote.totalInputAmount`, the exact deposit amount the user needs to send. `quote.trafficFeeInInput` remains available as a compatibility alias for `quote.networkFeeAmount`.
 
 If a token symbol exists under multiple admins, pass `poolId` or both token admin fields (`fromAdmin` and `toAdmin`) so OneSwap can resolve the exact pool pair.
 
@@ -102,6 +103,10 @@ const swap = await client.swaps.create({
 
 console.log(swap.depositAddress) // pool swap party
 console.log(swap.depositReference) // pass through when the wallet supports Canton reason/reference metadata
+console.log(swap.quotedSwapAmount) // the swap amount you asked OneSwap to price
+console.log(swap.expectedAmount) // final deposit amount to send
+console.log(swap.networkFeeAmount)
+console.log(swap.poolFeeAmount)
 console.log(swap.expectedOutput)
 console.log(swap.expiresAt)
 ```
@@ -112,7 +117,7 @@ Swap intents currently remain valid for 24 hours. Use `swap.expiresAt` from the 
 
 ## 7. Send the deposit
 
-The user sends tokens from `partyId` directly to `swap.depositAddress` and passes through `swap.depositReference` when the wallet supports Canton reason/reference metadata. Do not send from a different wallet or Canton party, or the swap will not complete.
+The user sends `swap.expectedAmount` (same as `swap.totalInputAmount`) from `partyId` directly to `swap.depositAddress` and passes through `swap.depositReference` when the wallet supports Canton reason/reference metadata. Do not send from a different wallet or Canton party, or the swap will not complete.
 
 ## 8. Wait for completion
 

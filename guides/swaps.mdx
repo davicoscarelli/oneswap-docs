@@ -41,6 +41,10 @@ This returns a `SwapIntent` with everything you need:
 | `depositAddress` | Pool swap party that should receive the deposit |
 | `swapAddress` | The same pool swap party, returned explicitly for clarity |
 | `depositReference` | Transfer reference to pass through when the wallet supports Canton reason/reference metadata |
+| `expectedAmount` | Final deposit amount to send, including the estimated network fee |
+| `quotedSwapAmount` | Original swap amount you asked OneSwap to quote into the pool |
+| `networkFeeAmount` | Estimated network fee added on top of the swap amount |
+| `poolFeeAmount` | The 0.1% swap fee deducted before pricing into the pool |
 | `expectedOutput` | Estimated output amount |
 | `minOutput` | Minimum accepted after slippage |
 | `outputAddress` | Resolved destination party for the payout |
@@ -58,7 +62,7 @@ Swap intents currently remain valid for 24 hours. Use `swap.expiresAt` from the 
 3. Verify the signature and store the returned wallet token
 4. Create the intent with `client.swaps.create(...)`
 5. OneSwap returns the pool swap party as `depositAddress` plus a `depositReference`
-6. The user sends the input token directly from that same party to `depositAddress` and passes through the reference when the wallet supports Canton reason/reference metadata
+6. The user sends the final deposit amount from that same party to `depositAddress` and passes through the reference when the wallet supports Canton reason/reference metadata
 7. OneSwap detects the deposit and executes the swap
 8. Output returns directly to the same party that made the deposit
 
@@ -140,7 +144,7 @@ swap.on('sending_output', () => console.log('Sending payout'))
 swap.on('completed', (s) => console.log(`Got ${s.actualOutput}`))
 swap.on('slippage_failed', () => console.log('Refunded: price moved'))
 swap.on('price_impact_exceeded', () => console.log('Refunded: price impact too high'))
-swap.on('insufficient_amount', () => console.log('Refunded: below traffic cost'))
+swap.on('insufficient_amount', () => console.log('Refunded: deposit below required network cost'))
 swap.on('output_failed', () => console.log('Output transfer failed, input was refunded'))
 swap.on('refund_failed', () => console.log('Refund failed, manual intervention required'))
 swap.on('expired', () => console.log('Expired'))
@@ -189,14 +193,18 @@ const quote = await client.quotes.get({
 })
 ```
 
-`quote.estimatedTrafficCost`, `quote.trafficFeeInInput`, and `quote.inputAmountAfterTrafficFee` help you account for Canton execution costs before the swap executes.
+`quote.estimatedTrafficCost`, `quote.networkFeeAmount`, `quote.totalInputAmount`, and `quote.inputAmountAfterPoolFee` help you account for Canton execution costs before the swap executes.
 
 - `inputTokenAdmin` and `outputTokenAdmin` identify the exact instruments that were priced.
 - `maxPriceImpact` is the server-enforced price impact cap. Swaps exceeding this are rejected.
-- `trafficFeeInInput` is the amount deducted from the input token as traffic-cost recovery.
-- `outputAmount` is quoted from `inputAmountAfterTrafficFee`, not from the gross deposit amount.
+- `inputAmount` is the swap amount you asked OneSwap to price into the pool.
+- `inputAmountAfterPoolFee` is the amount that actually trades into the pool after deducting the 0.1% swap fee.
+- `outputAmount` is quoted from `inputAmountAfterPoolFee`, not from `totalInputAmount`.
+- `networkFeeAmount` is the estimated Canton network fee added on top of the swap amount.
+- `totalInputAmount` is the exact deposit amount to send if you create the intent.
+- `trafficFeeInInput` remains as a compatibility alias for `networkFeeAmount`.
 - `receiverParty` lets the quote include the same destination-party traffic assumptions used by the live execution path.
-- The traffic fee is separate from the 0.1% swap fee and is not shared with LPs or SDK developers.
+- The network fee is separate from the 0.1% swap fee and is not shared with LPs or SDK developers.
 
 ## Wallet auth
 

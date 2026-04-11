@@ -41,19 +41,26 @@ interface Quote {
   inputTokenAdmin: string
   outputToken: string
   outputTokenAdmin: string
-  inputAmount: string             // gross amount the user sends
-  outputAmount: string            // quoted from inputAmountAfterTrafficFee
+  inputAmount: string             // swap amount entered by the user
+  totalInputAmount?: string       // final deposit amount after adding the network fee
+  outputAmount: string            // quoted from inputAmountAfterPoolFee
   rate: string
   priceImpact: string
   fee: number                     // swap fee rate, e.g. 0.001 for 0.1%
+  poolFeeAmount?: string          // absolute 0.1% swap fee in the input token
+  lpFeeAmount?: string
+  platformFeeAmount?: string
+  inputAmountAfterPoolFee?: string
+  networkFeeAmount?: string       // estimated network fee added on top of the swap amount
   poolId: string
   expiresIn: number               // seconds
   maxPriceImpact?: number         // server-enforced cap (e.g. 15)
   estimatedTrafficCost?: TrafficCostEstimate
-  trafficFeeInInput?: string      // traffic recovery converted into the input token
-  inputAmountAfterTrafficFee?: string
+  trafficFeeInInput?: string      // legacy alias of networkFeeAmount
 }
 ```
+
+`inputAmount` is the amount you want swapped into the pool. `totalInputAmount` is the larger deposit you actually send after adding the estimated network fee. `outputAmount` is priced from `inputAmountAfterPoolFee`, not from `totalInputAmount`.
 
 ## Pool
 
@@ -170,6 +177,14 @@ interface SwapIntentResponse {
   outputToken: string
   outputTokenAdmin: string
   expectedAmount: string
+  quotedSwapAmount?: string
+  totalInputAmount?: string
+  poolFeeAmount?: string
+  lpFeeAmount?: string
+  platformFeeAmount?: string
+  inputAmountAfterPoolFee?: string
+  networkFeeAmount?: string
+  trafficFeeInInput?: string
   expectedOutput: string | null
   minOutput: string | null
   slippageTolerance: number
@@ -206,6 +221,8 @@ interface CancelSwapResponse {
 `outputAddress` is deprecated in `CreateSwapParams`. Current OneSwap execution resolves swap output back to the same party that made the deposit.
 
 `depositReference` is recommended when your wallet flow supports Canton reason/reference metadata. Standard 1-step sender attribution does not depend on it.
+
+In `SwapIntentResponse`, `expectedAmount` is the final deposit amount to send. `quotedSwapAmount` is the original swap amount you asked OneSwap to price, and `networkFeeAmount` is the estimated network fee added on top.
 
 ## Wallet auth
 
