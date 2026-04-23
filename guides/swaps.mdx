@@ -42,8 +42,8 @@ This returns a `SwapIntent` with everything you need:
 | `swapAddress` | The same pool swap party, returned explicitly for clarity |
 | `depositReference` | Transfer reference to pass through when the wallet supports Canton reason/reference metadata |
 | `expectedAmount` | Final deposit amount to send, including the estimated network fee |
-| `quotedSwapAmount` | Original swap amount you asked OneSwap to quote into the pool |
-| `networkFeeAmount` | Estimated network fee added on top of the swap amount |
+| `quotedSwapAmount` | Original deposit amount you asked OneSwap to process |
+| `networkFeeAmount` | Estimated network fee deducted internally from that deposit |
 | `poolFeeAmount` | The 0.1% swap fee deducted before pricing into the pool |
 | `expectedOutput` | Estimated output amount |
 | `minOutput` | Minimum accepted after slippage |
@@ -92,7 +92,7 @@ OneSwap enforces a server-side price impact cap (currently 15%). If a quote or s
 
 The current SDK flow always returns swap output to the same Canton party that sends the deposit. `outputAddress` remains in the type surface for backward compatibility, but the SDK ignores it and `/api/v1/swaps` resolves output back to the depositor party.
 
-`depositReference` is recommended operational metadata. Pass it through to the wallet UX when the wallet supports Canton reason/reference fields so fallback matching and observability stay stronger.
+`depositReference` is recommended operational metadata. Pass it through to the wallet UX when the wallet supports Canton reason/reference fields so observability and fallback matching stay stronger.
 
 ## Disambiguating duplicate symbols
 
@@ -197,11 +197,11 @@ const quote = await client.quotes.get({
 
 - `inputTokenAdmin` and `outputTokenAdmin` identify the exact instruments that were priced.
 - `maxPriceImpact` is the server-enforced price impact cap. Swaps exceeding this are rejected.
-- `inputAmount` is the swap amount you asked OneSwap to price into the pool.
-- `inputAmountAfterPoolFee` is the amount that actually trades into the pool after deducting the 0.1% swap fee.
+- `inputAmount` is the exact deposit amount you asked OneSwap to process.
+- `networkFeeAmount` is deducted internally from that deposit before AMM pricing.
+- `inputAmountAfterPoolFee` is the amount that actually trades into the pool after deducting both the network fee and the 0.1% swap fee.
 - `outputAmount` is quoted from `inputAmountAfterPoolFee`, not from `totalInputAmount`.
-- `networkFeeAmount` is the estimated Canton network fee added on top of the swap amount.
-- `totalInputAmount` is the exact deposit amount to send if you create the intent.
+- `totalInputAmount` is the exact deposit amount to send if you create the intent, and in the current flow it matches `inputAmount`.
 - `trafficFeeInInput` remains as a compatibility alias for `networkFeeAmount`.
 - `receiverParty` lets the quote include the same destination-party traffic assumptions used by the live execution path.
 - The network fee is separate from the 0.1% swap fee and is not shared with LPs or SDK developers.

@@ -52,7 +52,7 @@ In SDK params and responses, use `Amulet` when you mean `CC (Amulet)`.
 
 | Method | Description |
 |---|---|
-| `client.quotes.get({ from, to, amount, receiverParty?, poolId?, fromAdmin?, toAdmin? })` | Price quote. `amount` is the swap amount you want priced into the pool. The response includes `inputAmountAfterPoolFee`, `networkFeeAmount`, and `totalInputAmount`. `outputAmount` is based on `inputAmountAfterPoolFee`, and `totalInputAmount` is the exact deposit amount to send after adding the estimated network fee. `trafficFeeInInput` remains as a compatibility alias for `networkFeeAmount`. When token symbols are reused across issuers, pass `poolId` or both admin fields to disambiguate the pool pair. |
+| `client.quotes.get({ from, to, amount, receiverParty?, poolId?, fromAdmin?, toAdmin? })` | Price quote. `amount` is the exact deposit amount you want the user to send. The response includes `networkFeeAmount`, `poolFeeAmount`, `inputAmountAfterPoolFee`, and `totalInputAmount`. `outputAmount` is based on `inputAmountAfterPoolFee`, while `totalInputAmount` currently echoes the exact deposit amount to send. `trafficFeeInInput` remains as a compatibility alias for `networkFeeAmount`. When token symbols are reused across issuers, pass `poolId` or both admin fields to disambiguate the pool pair. |
 
 Quotes also return `inputTokenAdmin` and `outputTokenAdmin` so you can keep working with the exact instrument identity that was priced.
 
@@ -92,9 +92,10 @@ Properties: `intentId`, `poolId`, `depositAddress`, `swapAddress`, `depositRefer
 Notes:
 - `depositAddress` is the pool swap party, not the user's own party.
 - `expectedAmount` is the final deposit amount to send. `totalInputAmount` returns the same value explicitly.
-- `quotedSwapAmount` is the swap amount you entered before fees.
-- `poolFeeAmount` is the 0.1% swap fee taken from `quotedSwapAmount` before pricing.
-- `networkFeeAmount` is the estimated network fee added on top of the swap amount to reach the final deposit. `trafficFeeInInput` remains as a compatibility alias.
+- `quotedSwapAmount` is the original deposit amount you entered. In the current flow it matches `expectedAmount`.
+- `poolFeeAmount` is the 0.1% swap fee deducted before the remaining amount is priced into the pool.
+- `networkFeeAmount` is the estimated network fee deducted internally from the deposit. `trafficFeeInInput` remains as a compatibility alias.
+- `inputAmountAfterPoolFee` is the amount that actually trades into the pool after both deductions.
 - `depositReference` is recommended when your wallet flow supports Canton reason/reference metadata. Sender attribution does not depend on it for standard 1-step transfers.
 - `client.swaps.create(...)` requires both a valid API key and a wallet-authenticated end-user token.
 - The deposit must be sent from the same signed-in wallet party used to create the swap intent.

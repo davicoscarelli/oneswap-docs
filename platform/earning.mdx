@@ -53,7 +53,7 @@ User swaps 1,000 CC
 
 ### Network fee — variable
 
-OneSwap also charges a small variable network-fee recovery amount per swap to offset Canton execution costs borne by pool parties. This is separate from the 0.1% swap fee, is shown in the quote as `networkFeeAmount` and `totalInputAmount`, recorded internally as a `traffic` fee event, and later collected to treasury with the rest of the platform fee accumulator. `trafficFeeInInput` remains available as a compatibility alias.
+OneSwap also charges a small variable network-fee recovery amount per swap to offset Canton execution costs borne by pool parties. This is separate from the 0.1% swap fee, is shown in the quote as `networkFeeAmount`, deducted internally from the exact deposit amount, recorded internally as a `traffic` fee event, and later collected to treasury with the rest of the platform fee accumulator. `totalInputAmount` currently echoes the exact deposit amount, and `trafficFeeInInput` remains available as a compatibility alias.
 
 Treasury collection is manual, not automatic.
 
