@@ -88,7 +88,7 @@ console.log(quote.inputAmountAfterPoolFee)
 console.log(quote.estimatedTrafficCost?.cc)
 ```
 
-`amount` is the exact deposit amount the user plans to send. OneSwap estimates the payout-leg network fee in the input token, deducts that internally from the deposit, then deducts the 0.1% pool fee from the remainder before pricing the swap. `quote.outputAmount` is calculated from `quote.inputAmountAfterPoolFee`. `quote.totalInputAmount` currently echoes the exact deposit amount to send, and `quote.trafficFeeInInput` remains available as a compatibility alias for `quote.networkFeeAmount`.
+`amount` is the exact deposit amount the user plans to send. OneSwap estimates the payout-leg network fee in the input token, deducts that internally from the deposit, then deducts the 0.3% pool fee from the remainder before pricing the swap. `quote.outputAmount` is calculated from `quote.inputAmountAfterPoolFee`. `quote.totalInputAmount` currently echoes the exact deposit amount to send, and `quote.trafficFeeInInput` remains available as a compatibility alias for `quote.networkFeeAmount`.
 
 If a token symbol exists under multiple admins, pass `poolId` or both token admin fields (`fromAdmin` and `toAdmin`) so OneSwap can resolve the exact pool pair.
 

@@ -5,28 +5,28 @@ description: "How OneSwap's fee model works — earn trading fees as a liquidity
 
 # Fee Sharing & Earning
 
-Every swap on OneSwap generates a **0.1% fee**. That fee is split between liquidity providers, the platform, and — for SDK-powered swaps — the developer who built the integration.
+Every swap on OneSwap generates a **0.3% fee**. That fee is split between liquidity providers, the platform, and — for SDK-powered swaps — the developer who built the integration.
 
 ## Fee Structure
 
-### Total swap fee — 0.1%
+### Total swap fee — 0.3%
 
-Every token swap charges a **0.1% fee** on the input amount. Here's how it's distributed:
+Every token swap charges a **0.3% fee** on the input amount. Here's how it's distributed:
 
 | Recipient | Share | Percentage |
 |-----------|-------|------------|
-| **Liquidity Providers** | 75% of fee | **0.075%** |
-| **Platform** | 25% of fee | **0.025%** |
+| **Liquidity Providers** | 75% of fee | **0.225%** |
+| **Platform** | 25% of fee | **0.075%** |
 
 ### SDK Developer Fee Split
 
-When a swap is executed through the **OneSwap SDK** (by a third-party app), the platform's 0.025% share is split equally with the developer:
+When a swap is executed through the **OneSwap SDK** (by a third-party app), the platform's 0.075% share is split equally with the developer:
 
 | Recipient | Share | Percentage |
 |-----------|-------|------------|
-| **Liquidity Providers** | 75% of fee | **0.075%** |
-| **Platform** | 12.5% of fee | **0.0125%** |
-| **SDK Developer** | 12.5% of fee | **0.0125%** |
+| **Liquidity Providers** | 75% of fee | **0.225%** |
+| **Platform** | 12.5% of fee | **0.0375%** |
+| **SDK Developer** | 12.5% of fee | **0.0375%** |
 
 This means developers earn revenue simply by integrating OneSwap into their apps.
 
@@ -35,8 +35,8 @@ This means developers earn revenue simply by integrating OneSwap into their apps
 ```
 User swaps 1,000 CC
   ├── Network fee → OneSwap treasury recovery (variable, small)
-  ├── 0.75 CC (0.075%) → Liquidity Providers
-  ├── 0.25 CC (0.025%) → OneSwap Platform
+  ├── 2.25 CC (0.225%) → Liquidity Providers
+  ├── 0.75 CC (0.075%) → OneSwap Platform
   └── Remainder → Swap calculation → Output tokens to user
 ```
 
@@ -45,15 +45,15 @@ User swaps 1,000 CC
 ```
 User swaps 1,000 CC
   ├── Network fee → OneSwap treasury recovery (variable, small)
-  ├── 0.75 CC (0.075%) → Liquidity Providers
-  ├── 0.125 CC (0.0125%) → OneSwap Platform
-  ├── 0.125 CC (0.0125%) → SDK Developer
+  ├── 2.25 CC (0.225%) → Liquidity Providers
+  ├── 0.375 CC (0.0375%) → OneSwap Platform
+  ├── 0.375 CC (0.0375%) → SDK Developer
   └── Remainder → Swap calculation → Output tokens to user
 ```
 
 ### Network fee — variable
 
-OneSwap also charges a small variable network-fee recovery amount per swap to offset Canton execution costs borne by pool parties. This is separate from the 0.1% swap fee, is shown in the quote as `networkFeeAmount`, deducted internally from the exact deposit amount, recorded internally as a `traffic` fee event, and later collected to treasury with the rest of the platform fee accumulator. `totalInputAmount` currently echoes the exact deposit amount, and `trafficFeeInInput` remains available as a compatibility alias.
+OneSwap also charges a small variable network-fee recovery amount per swap to offset Canton execution costs borne by pool parties. This is separate from the 0.3% swap fee, is shown in the quote as `networkFeeAmount`, deducted internally from the exact deposit amount, recorded internally as a `traffic` fee event, and later collected to treasury with the rest of the platform fee accumulator. `totalInputAmount` currently echoes the exact deposit amount, and `trafficFeeInInput` remains available as a compatibility alias.
 
 Treasury collection is manual, not automatic.
 
@@ -61,12 +61,12 @@ Traffic recovery is not shared with liquidity providers or SDK developers. Pool 
 
 ## How LPs Earn
 
-When you provide liquidity, you earn **0.075% of every swap** proportional to your share of the pool.
+When you provide liquidity, you earn **0.225% of every swap** proportional to your share of the pool.
 
 ### The Math
 
 ```
-Your earnings per swap = LP fee (0.075%) × Swap amount × (Your LP balance / Total LP supply)
+Your earnings per swap = LP fee (0.225%) × Swap amount × (Your LP balance / Total LP supply)
 ```
 
 **Example:**
@@ -77,15 +77,15 @@ Your earnings per swap = LP fee (0.075%) × Swap amount × (Your LP balance / To
 | Total LP supply in pool | 10,000 |
 | Your pool share | 1% |
 | Swap volume today | 500,000 CC |
-| LP fees generated | 375 CC (0.075%) |
-| **Your earnings today** | **3.75 CC** |
+| LP fees generated | 1,125 CC (0.225%) |
+| **Your earnings today** | **11.25 CC** |
 
 ### How Fees Accumulate
 
 Fees don't appear as a separate balance. Instead, they increase the value of your LP position:
 
 1. A user swaps 1,000 CC for USDCx
-2. 0.75 CC (0.075%) is added to the pool reserves
+2. 2.25 CC (0.225%) is added to the pool reserves
 3. Your LP balance now represents a slightly larger share of reserves
 4. When you withdraw, you receive more tokens than you deposited
 
@@ -122,8 +122,8 @@ Let's say you provide liquidity to the CC/USDCx pool:
 
 **Over 30 Days: Trading Happens**
 - 2,000,000 CC in total swap volume passes through the pool
-- LP fees generated: 1,500 CC worth of value (0.075%)
-- Your 1% share: **~15 CC worth of fees earned**
+- LP fees generated: 4,500 CC worth of value (0.225%)
+- Your 1% share: **~45 CC worth of fees earned**
 
 **Day 30: You Withdraw**
 - You withdraw your LP balance
@@ -132,21 +132,21 @@ Let's say you provide liquidity to the CC/USDCx pool:
 
 ## For SDK Developers
 
-If you integrate OneSwap into your application using the SDK, you automatically earn **0.0125% of every swap** made through your integration.
+If you integrate OneSwap into your application using the SDK, you automatically earn **0.0375% of every swap** made through your integration.
 
 ### How It Works
 
 1. Authenticate your wallet in the OneSwap developer portal and create an SDK API key
 2. Integrate swap functionality into your app
-3. Every swap your users make generates 0.0125% revenue for you
+3. Every swap your users make generates 0.0375% revenue for you
 
 ### Revenue Example
 
-| Monthly Swap Volume | Your Revenue (0.0125%) |
+| Monthly Swap Volume | Your Revenue (0.0375%) |
 |---|---|
-| 100,000 CC | 12.5 CC |
-| 1,000,000 CC | 125 CC |
-| 10,000,000 CC | 1,250 CC |
+| 100,000 CC | 37.5 CC |
+| 1,000,000 CC | 375 CC |
+| 10,000,000 CC | 3,750 CC |
 
 No upfront cost. No minimum volume. You earn from the first swap.
 
@@ -169,10 +169,10 @@ No upfront cost. No minimum volume. You earn from the first swap.
 
 | Fee | Rate | Recipient | Source |
 |-----|------|-----------|--------|
-| LP Fee | 0.075% | Liquidity Providers | All swaps |
-| Platform Fee | 0.025% | OneSwap | Direct swaps |
-| Platform Fee (SDK) | 0.0125% | OneSwap | SDK swaps |
-| Developer Fee | 0.0125% | SDK Developer | SDK swaps |
+| LP Fee | 0.225% | Liquidity Providers | All swaps |
+| Platform Fee | 0.075% | OneSwap | Direct swaps |
+| Platform Fee (SDK) | 0.0375% | OneSwap | SDK swaps |
+| Developer Fee | 0.0375% | SDK Developer | SDK swaps |
 | Network Fee | Variable | OneSwap treasury recovery | All swaps |
 
 ## Featured App Rewards
@@ -184,5 +184,5 @@ OneSwap participates in the Canton Network's **Featured App Rewards** program. T
 - These rewards supplement the platform's sustainability
 
 <Info>
-Featured App Rewards are a platform-level benefit and don't directly affect individual LP earnings. The 0.075% LP fee remains the primary earning mechanism for liquidity providers.
+Featured App Rewards are a platform-level benefit and don't directly affect individual LP earnings. The 0.225% LP fee remains the primary earning mechanism for liquidity providers.
 </Info>

@@ -93,7 +93,7 @@ Notes:
 - `depositAddress` is the pool swap party, not the user's own party.
 - `expectedAmount` is the final deposit amount to send. `totalInputAmount` returns the same value explicitly.
 - `quotedSwapAmount` is the original deposit amount you entered. In the current flow it matches `expectedAmount`.
-- `poolFeeAmount` is the 0.1% swap fee deducted before the remaining amount is priced into the pool.
+- `poolFeeAmount` is the 0.3% swap fee deducted before the remaining amount is priced into the pool.
 - `networkFeeAmount` is the estimated network fee deducted internally from the deposit. `trafficFeeInInput` remains as a compatibility alias.
 - `inputAmountAfterPoolFee` is the amount that actually trades into the pool after both deductions.
 - `depositReference` is recommended when your wallet flow supports Canton reason/reference metadata. Sender attribution does not depend on it for standard 1-step transfers.

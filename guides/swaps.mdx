@@ -44,7 +44,7 @@ This returns a `SwapIntent` with everything you need:
 | `expectedAmount` | Final deposit amount to send, including the estimated network fee |
 | `quotedSwapAmount` | Original deposit amount you asked OneSwap to process |
 | `networkFeeAmount` | Estimated network fee deducted internally from that deposit |
-| `poolFeeAmount` | The 0.1% swap fee deducted before pricing into the pool |
+| `poolFeeAmount` | The 0.3% swap fee deducted before pricing into the pool |
 | `expectedOutput` | Estimated output amount |
 | `minOutput` | Minimum accepted after slippage |
 | `outputAddress` | Resolved destination party for the payout |
@@ -199,12 +199,12 @@ const quote = await client.quotes.get({
 - `maxPriceImpact` is the server-enforced price impact cap. Swaps exceeding this are rejected.
 - `inputAmount` is the exact deposit amount you asked OneSwap to process.
 - `networkFeeAmount` is deducted internally from that deposit before AMM pricing.
-- `inputAmountAfterPoolFee` is the amount that actually trades into the pool after deducting both the network fee and the 0.1% swap fee.
+- `inputAmountAfterPoolFee` is the amount that actually trades into the pool after deducting both the network fee and the 0.3% swap fee.
 - `outputAmount` is quoted from `inputAmountAfterPoolFee`, not from `totalInputAmount`.
 - `totalInputAmount` is the exact deposit amount to send if you create the intent, and in the current flow it matches `inputAmount`.
 - `trafficFeeInInput` remains as a compatibility alias for `networkFeeAmount`.
 - `receiverParty` lets the quote include the same destination-party traffic assumptions used by the live execution path.
-- The network fee is separate from the 0.1% swap fee and is not shared with LPs or SDK developers.
+- The network fee is separate from the 0.3% swap fee and is not shared with LPs or SDK developers.
 
 ## Wallet auth
 
